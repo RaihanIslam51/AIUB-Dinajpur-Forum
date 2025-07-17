@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { CgLogIn } from 'react-icons/cg';
-import { FaAngleDown, FaFirefoxBrowser, FaUser } from 'react-icons/fa';
+import { FaAngleDown, FaUser } from 'react-icons/fa';
 import { IoMdMenu } from 'react-icons/io';
 import { IoCloseSharp } from 'react-icons/io5';
 import { NavLink } from 'react-router-dom';
@@ -33,6 +33,19 @@ const Navbar = () => {
     setProfileOpen(false);
   };
 
+  // Nav links array
+  const navLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Membership', path: '/membership' },
+    {name : "Dashboard", path:"/dashboard"},
+  ];
+
+  const notificationButton = {
+    icon: '🔔',
+    label: 'Notifications',
+    onClick: () => alert('Notifications clicked!'), // Replace with navigation or logic
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-white/90 via-blue-50/80 to-white/90 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-xl backdrop-blur-lg border-b border-blue-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center h-20">
@@ -52,20 +65,33 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-7">
-          <NavLink
-            to="/upcomingEvents"
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
-                isActive
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow'
-                  : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600'
-              }`
-            }
-          >
-            <FaFirefoxBrowser />
-            <span>Upcoming Events</span>
-          </NavLink>
+          {navLinks.map(({ name, path, icon }) => (
+            <NavLink
+              key={name}
+              to={path}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600'
+                }`
+              }
+            >
+              {icon && icon}
+              <span>{name}</span>
+            </NavLink>
+          ))}
 
+          {/* Notification Button */}
+          <button
+            onClick={notificationButton.onClick}
+            title={notificationButton.label}
+            className="text-xl hover:text-blue-600 dark:hover:text-blue-300 transition"
+          >
+            {notificationButton.icon}
+          </button>
+
+          {/* Auth Area */}
           {!UserData ? (
             <NavLink
               to="/auth/login"
@@ -79,8 +105,6 @@ const Navbar = () => {
               <button
                 onClick={() => setProfileOpen(prev => !prev)}
                 className="flex items-center gap-2 focus:outline-none group"
-                aria-haspopup="true"
-                aria-expanded={profileOpen}
               >
                 <img
                   src={UserData.photoURL || '/default-avatar.png'}
@@ -94,17 +118,15 @@ const Navbar = () => {
               {profileOpen && (
                 <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-blue-100 dark:border-gray-700 py-3 z-50">
                   <div className="px-5 pb-2 border-b border-gray-100 dark:border-gray-800 mb-2">
-                    <div className="font-bold text-gray-800 dark:text-gray-100">
-                      {UserData.displayName || 'User'}
-                    </div>
+                    <div className="font-bold text-gray-800 dark:text-gray-100">{UserData.displayName || 'User'}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{UserData.email}</div>
                   </div>
                   <NavLink
-                    to="/auth/profile"
+                    to="/dashboard"
                     onClick={() => setProfileOpen(false)}
                     className="block px-5 py-2 text-sm rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-800 transition"
                   >
-                    Profile
+                    Dashboard
                   </NavLink>
                   <button
                     onClick={handleSignOut}
@@ -122,7 +144,6 @@ const Navbar = () => {
         <button
           className="md:hidden text-blue-700 dark:text-blue-300 focus:outline-none"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
         >
           {open ? <IoCloseSharp size={30} /> : <IoMdMenu size={30} />}
         </button>
@@ -135,21 +156,37 @@ const Navbar = () => {
         }`}
       >
         <div className="flex flex-col space-y-4">
-          <NavLink
-            to="/upcomingEvents"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                isActive
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow'
-                  : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600'
-              }`
-            }
-          >
-            <FaFirefoxBrowser />
-            <span>Upcoming Events</span>
-          </NavLink>
+          {navLinks.map(({ name, path, icon }) => (
+            <NavLink
+              key={name}
+              to={path}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600'
+                }`
+              }
+            >
+              {icon && icon}
+              <span>{name}</span>
+            </NavLink>
+          ))}
 
+          {/* Notification mobile */}
+          <button
+            onClick={() => {
+              notificationButton.onClick();
+              setOpen(false);
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
+          >
+            <span className="text-xl">{notificationButton.icon}</span>
+            <span>{notificationButton.label}</span>
+          </button>
+
+          {/* Auth Area - Mobile */}
           {!UserData ? (
             <NavLink
               to="/auth/login"
@@ -162,12 +199,12 @@ const Navbar = () => {
           ) : (
             <>
               <NavLink
-                to="/auth/profile"
+                to="/dashboard"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
               >
                 <FaUser />
-                <span>Profile</span>
+                <span>Dashboard</span>
               </NavLink>
               <button
                 onClick={handleSignOut}

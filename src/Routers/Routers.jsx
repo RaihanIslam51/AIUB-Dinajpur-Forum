@@ -3,11 +3,14 @@ import {
 } from "react-router";
 import Register from "../Authantication/Register";
 import SignIn from "../Authantication/SignIn";
-import Dashboard from "../Pages/Dashboard/Dashboard";
+import AddPost from "../Pages/Dashboard/UserDashboard/AddPost";
+import MyPosts from "../Pages/Dashboard/UserDashboard/MyPosts";
+import MyProfile from "../Pages/Dashboard/UserDashboard/MyProfile";
 import HomePage from "../Pages/Home/HomePage";
 import Membership from "../Pages/Membership/Membership";
 import Profile from "../Pages/Shared/Profile";
 import AuthRoot from "../RootLayout/AuthRoot";
+import DashboardLayout from "../RootLayout/DashboardLayout";
 import RootLayout from "../RootLayout/RootLayout";
 export const router = createBrowserRouter([
   {
@@ -15,7 +18,6 @@ export const router = createBrowserRouter([
     Component:RootLayout,
     children :[
       {index:true, path:"/", Component:HomePage},
-      {path:"/dashboard",Component:Dashboard},
       {path:"/membership", Component:Membership}
     ]
   },
@@ -28,5 +30,14 @@ export const router = createBrowserRouter([
       {path:"/auth/profile", Component:Profile}
     ]
     
+  },
+  {
+    path: "/dashboard",
+    Component :DashboardLayout,
+    children : [
+      {path :"/dashboard/MyProfile",Component:MyProfile},
+      {path:"/dashboard/AddPost", Component:AddPost},
+      {path:"/dashboard/MyPosts", Component:MyPosts}
+    ]
   }
 ]);

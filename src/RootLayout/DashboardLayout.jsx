@@ -24,6 +24,18 @@ const DashboardLayout = () => {
           <NavLink to="/dashboard/MyPosts" className={linkClass}>
             My Posts
           </NavLink>
+          <NavLink to="/dashboard/AdminProfile" className={linkClass}>
+            Admin Profile
+          </NavLink>
+          <NavLink to="/dashboard/ManageUsers" className={linkClass}>
+            Manage Users
+          </NavLink>
+          <NavLink to="/dashboard/ReportedComments" className={linkClass}>
+           Reported Comments
+          </NavLink>
+           <NavLink to="/dashboard/MakeAnnouncement" className={linkClass}>
+           Make Announcement
+          </NavLink>
         </nav>
       </aside>
 

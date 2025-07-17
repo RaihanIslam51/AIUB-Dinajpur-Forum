@@ -1,199 +1,253 @@
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import Select from "react-select";
-import Swal from "sweetalert2";
-import useAuth from "../../../Hooks/AxiosSeure/useAuth";
-import useAxiosSesure from "../../../Hooks/AxiosSeure/useAxiosSecure";
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import Select from 'react-select';
+import Swal from 'sweetalert2';
+import useAuth from '../../../Hooks/AxiosSeure/useAuth';
+import useAxiosSecure from '../../../Hooks/AxiosSeure/useAxiosSecure';
 
+const TAG_OPTIONS = [
+  { value: 'tech', label: 'Tech' },
+  { value: 'news', label: 'News' },
+  { value: 'education', label: 'Education' },
+  { value: 'health', label: 'Health' },
+];
+
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderRadius: '0.75rem',
+    borderColor: state.isFocused ? '#6366f1' : '#d1d5db',
+    boxShadow: state.isFocused ? '0 0 0 3px rgb(99 102 241 / 0.3)' : 'none',
+    transition: 'all 0.2s',
+    padding: '0.1rem',
+    cursor: 'pointer',
+    minHeight: '2.9rem',
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? '#6366f1' : 'white',
+    color: state.isFocused ? 'white' : 'black',
+    cursor: 'pointer',
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '0.75rem',
+    boxShadow: '0 10px 15px -3px rgb(99 102 241 / 0.2)',
+  }),
+};
 
 const AddPost = () => {
   const { UserData } = useAuth();
-  const axiosSecure = useAxiosSesure()
-  const navigate = useNavigate();
+  const axiosSecure = useAxiosSecure();
+  const [authorImage, setAuthorImage] = useState('');
+  const [selectedTag, setSelectedTag] = useState(null);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
-  const [authorImage, setAuthorImage] = useState("");
-  const [tag, setTag] = useState(null);
-  const [postCount, setPostCount] = useState(0);
-  const postLimit = 5;
-
-  const tagOptions = [
-    { value: "tech", label: "Tech" },
-    { value: "news", label: "News" },
-    { value: "tutorial", label: "Tutorial" },
-    { value: "lifestyle", label: "Lifestyle" },
-  ];
-
-  const handleImageUpload = async (e) => {
-    const image = e.target.files[0];
-    const formData = new FormData();
-    formData.append("image", image);
-    const uploadUrl = `https://api.imgbb.com/1/upload?key=36f47c5ee620bb292f8a6a4a24adb091`;
-
-    try {
-      const res = await axios.post(uploadUrl, formData);
-      setAuthorImage(res.data.data.url);
-    } catch (error) {
-      console.error("Image upload failed", error);
-    }
-  };
-
-  // 🧠 Mutation for adding post
-  const { mutate: addPost, isLoading } = useMutation({
-    mutationFn: async (postData) => {
-      const res = await axiosSecure.post("/posts", postData);
-      return res.data;
-    },
-    onSuccess: () => {
-      Swal.fire("Success!", "Post added successfully", "success");
-      reset();
-      setAuthorImage("");
-      setTag(null);
-    },
-    onError: () => {
-      Swal.fire("Error", "Failed to add post", "error");
+  // Fetch post count
+  const { data: postCount = 0, isLoading } = useQuery({
+    queryKey: ['userPostCount', UserData?.email],
+    enabled: !!UserData?.email,
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/addposts/count?email=${UserData.email}`);
+      return res.data.count;
     },
   });
 
-  const onSubmit = (data) => {
-    const newPost = {
+  // Upload image to imgbb
+  const handleUploadImage = async (e) => {
+    const image = e.target.files[0];
+    if (!image) return;
+    const formData = new FormData();
+    formData.append('image', image);
+
+    try {
+      const res = await fetch(
+        `https://api.imgbb.com/1/upload?key=36f47c5ee620bb292f8a6a4a24adb091`,
+        { method: 'POST', body: formData }
+      );
+      const imgData = await res.json();
+      if (imgData.success) {
+        setAuthorImage(imgData.data.url);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch {
+      Swal.fire('Image Upload Failed', 'Please try again with a different image.', 'error');
+    }
+  };
+
+  // Submit handler
+  const onSubmit = async (data) => {
+    if (!authorImage) {
+      Swal.fire('Please upload an author image', '', 'warning');
+      return;
+    }
+    if (!selectedTag) {
+      Swal.fire('Please select a tag', '', 'warning');
+      return;
+    }
+    const postData = {
       authorName: UserData?.displayName,
       authorEmail: UserData?.email,
-      authorImage: authorImage,
+      authorImage,
       title: data.title,
       description: data.description,
-      tag: tag?.value || "general",
+      tag: selectedTag.value,
       upVote: 0,
       downVote: 0,
       date: new Date(),
     };
 
-    addPost(newPost);
+    try {
+      const res = await axiosSecure.post('/addposts', postData);
+      if (res.data.insertedId) {
+        Swal.fire('Post Added Successfully', '', 'success');
+        reset();
+        setAuthorImage('');
+        setSelectedTag(null);
+      }
+    } catch {
+      Swal.fire('Failed to Submit Post', '', 'error');
+    }
   };
 
-  // Simulate post count (replace with DB logic)
-  useEffect(() => {
-    setPostCount(UserData?.posts?.length || 3);
-  }, [UserData]);
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[40vh] text-indigo-600 text-xl font-semibold">
+        Loading your posts...
+      </div>
+    );
+  }
 
-  const isLimitReached = postCount >= postLimit && !UserData?.isMember;
+  if (postCount >= 5) {
+    return (
+      <section className="max-w-xl mx-auto bg-red-50 border border-red-300 rounded-2xl p-8 text-center shadow-lg mt-10">
+        <h2 className="text-3xl font-extrabold text-red-700 mb-3">Post Limit Reached</h2>
+        <p className="text-red-600 mb-6">
+          You have reached the free post limit of <span className="font-bold">5</span> articles.
+        </p>
+        <a
+          href="/membership"
+          className="inline-block bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:brightness-110 transition"
+        >
+          Become a Member & Post More
+        </a>
+      </section>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-3xl font-bold text-indigo-700 mb-4">Add New Post</h2>
+    <div className="max-w-3xl mx-auto p-8 bg-white rounded-3xl shadow-2xl mt-10">
+      <h1 className="text-4xl font-extrabold text-indigo-700 mb-10 text-center tracking-tight">
+        Create a New Post
+      </h1>
 
-      {isLimitReached ? (
-        <div className="text-center space-y-4 py-10">
-          <p className="text-lg font-medium text-red-500">
-            You have reached your post limit. Become a member to add more!
-          </p>
-          <button
-            onClick={() => navigate("/membership")}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
-          >
-            Become a Member
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Author Name & Email */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Author Name</label>
-              <input
-                type="text"
-                defaultValue={UserData?.displayName}
-                disabled
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Author Email</label>
-              <input
-                type="email"
-                defaultValue={UserData?.email}
-                disabled
-                className="w-full p-2 border rounded"
-              />
-            </div>
-          </div>
-
-          {/* Author Image Upload */}
-          <div>
-            <label className="text-sm font-medium">Author Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="w-full p-2 border rounded"
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Image Upload */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">Upload Author Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleUploadImage}
+            className="w-full rounded-xl border-2 border-dashed border-indigo-300 p-4 cursor-pointer hover:border-indigo-500 transition"
+            required={!authorImage}
+          />
+          {authorImage && (
+            <img
+              src={authorImage}
+              alt="Author preview"
+              className="mt-4 w-28 h-28 object-cover rounded-full border-4 border-indigo-300 shadow-lg mx-auto transition-opacity duration-500"
+              style={{ opacity: authorImage ? 1 : 0 }}
             />
-            {authorImage && (
-              <img
-                src={authorImage}
-                alt="Author"
-                className="mt-2 w-20 h-20 rounded-full object-cover border"
-              />
-            )}
-          </div>
+          )}
+        </div>
 
-          {/* Title */}
-          <div>
-            <label className="text-sm font-medium">Post Title</label>
+        {/* Author Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative">
             <input
               type="text"
-              {...register("title", { required: true })}
-              placeholder="Enter title"
-              className="w-full p-2 border rounded"
+              value={UserData?.displayName || ''}
+              readOnly
+              className="peer w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400"
             />
-            {errors.title && (
-              <p className="text-red-500 text-sm">Title is required</p>
-            )}
+            <label className="absolute left-4 top-1 text-gray-500 text-sm peer-focus:text-indigo-600 pointer-events-none transition-all">
+              Author Name
+            </label>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="text-sm font-medium">Post Description</label>
-            <textarea
-              {...register("description", { required: true })}
-              placeholder="Write your post here..."
-              rows="4"
-              className="w-full p-2 border rounded"
-            ></textarea>
-            {errors.description && (
-              <p className="text-red-500 text-sm">Description is required</p>
-            )}
-          </div>
-
-          {/* Tag */}
-          <div>
-            <label className="text-sm font-medium">Tag</label>
-            <Select
-              options={tagOptions}
-              value={tag}
-              onChange={setTag}
-              placeholder="Select a tag"
+          <div className="relative">
+            <input
+              type="email"
+              value={UserData?.email || ''}
+              readOnly
+              className="peer w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400"
             />
+            <label className="absolute left-4 top-1 text-gray-500 text-sm peer-focus:text-indigo-600 pointer-events-none transition-all">
+              Author Email
+            </label>
           </div>
+        </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded disabled:opacity-50"
-          >
-            {isLoading ? "Posting..." : "Submit Post"}
-          </button>
-        </form>
-      )}
+        {/* Title */}
+        <div className="relative">
+          <input
+            type="text"
+            {...register('title', { required: 'Title is required' })}
+            placeholder=" "
+            className={`peer w-full rounded-xl border ${
+              errors.title ? 'border-red-500' : 'border-gray-300'
+            } px-4 py-3 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400 transition`}
+          />
+          <label className="absolute left-4 top-1 text-gray-500 text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-indigo-600 pointer-events-none transition-all">
+            Post Title
+          </label>
+          {errors.title && (
+            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        <div className="relative">
+          <textarea
+            rows={6}
+            {...register('description', { required: 'Description is required' })}
+            placeholder=" "
+            className={`peer w-full rounded-xl border ${
+              errors.description ? 'border-red-500' : 'border-gray-300'
+            } px-4 py-3 resize-y focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400 transition`}
+          />
+          <label className="absolute left-4 top-1 text-gray-500 text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-indigo-600 pointer-events-none transition-all">
+            Write your post content...
+          </label>
+          {errors.description && (
+            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+          )}
+        </div>
+
+        {/* Tag Select */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">Select Tag</label>
+          <Select
+            options={TAG_OPTIONS}
+            value={selectedTag}
+            onChange={setSelectedTag}
+            placeholder="Choose a tag"
+            styles={customSelectStyles}
+            isClearable
+          />
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-extrabold rounded-3xl shadow-lg hover:brightness-110 transition"
+        >
+          Submit Post
+        </button>
+      </form>
     </div>
   );
 };

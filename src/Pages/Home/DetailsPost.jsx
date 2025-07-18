@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import {
   FaComments,
   FaEnvelope,
@@ -11,7 +12,7 @@ import {
   FaThumbsUp,
   FaUser,
 } from "react-icons/fa";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import { FacebookShareButton } from "react-share";
 
 import useAuth from "../../Hooks/AxiosSeure/useAuth";
@@ -24,9 +25,18 @@ const DetailsPost = () => {
   const queryClient = useQueryClient();
 
   const [newComment, setNewComment] = useState("");
+  const [upvoteEmails, setUpvoteEmails] = useState([]);
+  const [downvoteEmails, setDownvoteEmails] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch post data
-  const { data: post, isLoading, isError, error } = useQuery({
+  // Fetch the post data
+  const {
+    data: post,
+    isLoading,
+    isError,
+    error,
+    refetch: refetchPost,
+  } = useQuery({
     queryKey: ["post", id],
     queryFn: async () => {
       if (!id) return null;
@@ -36,55 +46,82 @@ const DetailsPost = () => {
     enabled: !!id,
   });
 
-  // Vote mutation
-  const voteMutation = useMutation({
-    mutationFn: async (type) => {
-      if (!post) throw new Error("Post not loaded");
-      const res = await axiosSecure.patch(`/allpost/vote/${post._id}`, { type });
+  // Fetch comments separately from the comments API
+  const {
+    data: comments = [],
+    isLoading: commentsLoading,
+    refetch: refetchComments,
+  } = useQuery({
+    queryKey: ["comments", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const res = await axiosSecure.get(`/post/comments/${id}`);
       return res.data;
     },
-    onSuccess: (updatedPost) => {
-      queryClient.setQueryData(["post", id], updatedPost);
-    },
-    onError: (err) => alert("Vote failed: " + err.message),
+    enabled: !!id,
   });
 
-  // Comment mutation
-  const commentMutation = useMutation({
-    mutationFn: async (commentText) => {
-      if (!post) throw new Error("Post not loaded");
-      const res = await axiosSecure.post(`/comments/${post._id}`, {
-        comment: commentText,
-        authorName: UserData.name,
-        authorEmail: UserData.email,
-        date: new Date().toISOString(),
-      });
-      return res.data;
-    },
-    onSuccess: (newComment) => {
-      queryClient.setQueryData(["post", id], (old) => ({
-        ...old,
-        comments: [...(old.comments || []), newComment],
-      }));
-      setNewComment("");
-    },
-    onError: (err) => alert("Failed to add comment: " + err.message),
-  });
+  useEffect(() => {
+    if (post) {
+      setUpvoteEmails(post.upVote || []);
+      setDownvoteEmails(post.downVote || []);
+    }
+  }, [post]);
 
-  const voteScore = (post?.upVote || 0) - (post?.downVote || 0);
+  const voteScore = upvoteEmails.length - downvoteEmails.length;
   const shareUrl = `${window.location.origin}/postDetails/${post?._id}`;
 
-  const handleVote = (type) => {
-    if (!UserData) return alert("Please log in to vote.");
-    if (voteMutation.isLoading) return;
-    voteMutation.mutate(type);
+  const handleVote = async (type) => {
+    if (!UserData) {
+      alert("Please log in to vote.");
+      return;
+    }
+
+    const email = UserData.email;
+
+    try {
+      const res = await axiosSecure.patch(`/post/vote/${id}`, {
+        email,
+        type,
+      });
+
+      const updatedPost = res.data;
+      setUpvoteEmails(updatedPost.upVote || []);
+      setDownvoteEmails(updatedPost.downVote || []);
+    } catch (error) {
+      console.error("Failed to update vote:", error);
+      alert("Failed to update vote, please try again.");
+    }
   };
 
-  const handleCommentSubmit = () => {
-    if (!UserData) return alert("Please log in to comment.");
-    if (!newComment.trim()) return alert("Comment cannot be empty.");
-    if (commentMutation.isLoading) return;
-    commentMutation.mutate(newComment.trim());
+  const handleCommentSubmit = async () => {
+    if (!UserData) {
+      alert("Please log in to comment.");
+      return;
+    }
+    if (!newComment.trim()) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await axiosSecure.post(`/post/comment/${id}`, {
+        authorName: UserData.displayName || "Anonymous",
+        authorEmail: UserData.email,
+        comment: newComment.trim(),
+      });
+
+      setNewComment("");
+      // Refresh comments only (no need to refetch post)
+      await refetchComments();
+
+      toast.success("Comment added");
+    } catch (error) {
+      console.error("Failed to submit comment:", error);
+      toast.error("Failed to submit comment, please try again.");
+    }
+    setSubmitting(false);
   };
 
   if (isLoading)
@@ -103,7 +140,7 @@ const DetailsPost = () => {
   if (isError)
     return (
       <div className="text-center text-red-600 py-20 font-medium">
-        {error.message || "Failed to load post."}
+        {error?.message || "Failed to load post."}
       </div>
     );
 
@@ -113,80 +150,82 @@ const DetailsPost = () => {
     );
 
   return (
-    <main className="pt-20 px-4 max-w-5xl mx-auto">
-      <article className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
-        {/* Post Image */}
-        <motion.img
-          src={post.authorImage}
-          alt={post.title}
-          className="w-full h-96 object-cover object-center rounded-t-3xl"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1 }}
-          loading="lazy"
-        />
-
-        <section className="p-8">
-          {/* Post Title and Meta */}
-          <header className="mb-6">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{post.title}</h1>
-            <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm">
-              <div className="flex items-center gap-1">
-                <FaUser />
-                <span>{post.authorName}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <FaEnvelope />
-                <span>{post.authorEmail}</span>
-              </div>
-              <time
-                dateTime={post.date}
-                className="ml-auto"
-                title={new Date(post.date).toLocaleString()}
-              >
-                {new Date(post.date).toLocaleString()}
-              </time>
-            </div>
-          </header>
-
-          {/* Post Description */}
-          <section className="text-gray-700 leading-relaxed mb-8 whitespace-pre-wrap">
-            {post.description}
-          </section>
-
-          {/* Tags and Vote Score */}
-          <section className="flex flex-wrap items-center gap-4 mb-8">
-            <Tag label={post.tag} icon={<FaHashtag />} />
-            <div className="flex items-center gap-1 text-orange-500 font-semibold">
-              <FaFireAlt /> <span>{voteScore} Votes</span>
-            </div>
-          </section>
-
-          {/* Vote and Share Buttons */}
-          <VoteButtons
-            upVote={post.upVote}
-            downVote={post.downVote}
-            onUpvote={() => handleVote("upvote")}
-            onDownvote={() => handleVote("downvote")}
-            voting={voteMutation.isLoading}
-            canVote={!!UserData}
-            shareUrl={shareUrl}
-            title={post.title}
-            canShare={!!UserData}
+    <>
+      <Toaster position="top-right" />
+      <main className="pt-20 px-4 max-w-5xl mx-auto">
+        <article className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
+          {/* Post Image */}
+          <motion.img
+            src={post.authorImage}
+            alt={post.title}
+            className="w-full h-96 object-cover object-center rounded-t-3xl"
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1 }}
+            loading="lazy"
           />
 
-          {/* Comments */}
-          <CommentsSection
-            comments={post.comments || []}
-            newComment={newComment}
-            setNewComment={setNewComment}
-            onSubmit={handleCommentSubmit}
-            submitting={commentMutation.isLoading}
-            canComment={!!UserData}
-          />
-        </section>
-      </article>
-    </main>
+          <section className="p-8">
+            {/* Post Title and Meta */}
+            <header className="mb-6">
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{post.title}</h1>
+              <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm">
+                <div className="flex items-center gap-1">
+                  <FaUser />
+                  <span>{post.authorName}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <FaEnvelope />
+                  <span>{post.authorEmail}</span>
+                </div>
+                <time
+                  dateTime={post.date}
+                  className="ml-auto"
+                  title={new Date(post.date).toLocaleString()}
+                >
+                  {new Date(post.date).toLocaleString()}
+                </time>
+              </div>
+            </header>
+
+            {/* Post Description */}
+            <section className="text-gray-700 leading-relaxed mb-8 whitespace-pre-wrap">
+              {post.description}
+            </section>
+
+            {/* Tags and Vote Score */}
+            <section className="flex flex-wrap items-center gap-4 mb-8">
+              <Tag label={post.tag} icon={<FaHashtag />} />
+              <div className="flex items-center gap-1 text-orange-500 font-semibold">
+                <FaFireAlt /> <span>{voteScore} Votes</span>
+              </div>
+            </section>
+
+            {/* Vote and Share Buttons */}
+            <VoteButtons
+              upVote={upvoteEmails.length}
+              downVote={downvoteEmails.length}
+              canVote={!!UserData}
+              shareUrl={shareUrl}
+              title={post.title}
+              canShare={!!UserData}
+              onVote={handleVote}
+            />
+
+            {/* Comments Section */}
+            <CommentsSection
+              comments={comments}
+              commentsLoading={commentsLoading}
+              newComment={newComment}
+              setNewComment={setNewComment}
+              onSubmit={handleCommentSubmit}
+              submitting={submitting}
+              canComment={!!UserData}
+            />
+          </section>
+        </article>
+      </main>
+    </>
   );
 };
 
@@ -199,13 +238,11 @@ const Tag = ({ label, icon }) => (
 const VoteButtons = ({
   upVote,
   downVote,
-  onUpvote,
-  onDownvote,
-  voting,
   canVote,
   shareUrl,
   title,
   canShare,
+  onVote,
 }) => (
   <section
     className="flex flex-wrap gap-4 justify-between items-center mb-10"
@@ -213,29 +250,27 @@ const VoteButtons = ({
   >
     <div className="flex gap-4">
       <motion.button
-        onClick={onUpvote}
-        disabled={voting || !canVote}
-        aria-disabled={!canVote}
+        onClick={() => onVote("up")}
+        disabled={!canVote}
         aria-label="Upvote post"
         whileTap={{ scale: 0.9 }}
         className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-green-500 text-green-600 font-semibold transition-colors ${
           canVote ? "hover:bg-green-50" : "opacity-50 cursor-not-allowed"
         }`}
       >
-        <FaThumbsUp size={20} /> Upvote ({upVote || 0})
+        <FaThumbsUp size={20} /> Upvote ({upVote})
       </motion.button>
 
       <motion.button
-        onClick={onDownvote}
-        disabled={voting || !canVote}
-        aria-disabled={!canVote}
+        onClick={() => onVote("down")}
+        disabled={!canVote}
         aria-label="Downvote post"
         whileTap={{ scale: 0.9 }}
         className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500 text-red-600 font-semibold transition-colors ${
           canVote ? "hover:bg-red-50" : "opacity-50 cursor-not-allowed"
         }`}
       >
-        <FaThumbsDown size={20} /> Downvote ({downVote || 0})
+        <FaThumbsDown size={20} /> Downvote ({downVote})
       </motion.button>
     </div>
 
@@ -255,20 +290,19 @@ const VoteButtons = ({
         </motion.div>
       </FacebookShareButton>
     ) : (
-      <button
-        disabled
-        aria-disabled="true"
+      <div
         className="flex items-center gap-2 px-5 py-3 rounded-xl border border-blue-500 text-blue-600 font-semibold opacity-50 cursor-not-allowed select-none"
         title="Login to share"
       >
         <FaShareAlt size={20} /> Share
-      </button>
+      </div>
     )}
   </section>
 );
 
 const CommentsSection = ({
   comments,
+  commentsLoading,
   newComment,
   setNewComment,
   onSubmit,
@@ -295,8 +329,8 @@ const CommentsSection = ({
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           required
-          aria-label="Write a comment"
           disabled={submitting}
+          aria-label="Write a comment"
         />
         <button
           type="submit"
@@ -310,13 +344,15 @@ const CommentsSection = ({
       <p className="text-gray-500 italic mb-8">Please log in to comment.</p>
     )}
 
-    {comments.length === 0 ? (
+    {commentsLoading ? (
+      <p className="text-gray-500 italic">Loading comments...</p>
+    ) : comments.length === 0 ? (
       <p className="text-gray-500 italic">No comments yet.</p>
     ) : (
       <ul className="space-y-6 max-h-[380px] overflow-y-auto pr-2">
         {comments.map((comment, i) => (
           <motion.li
-            key={i}
+            key={comment._id || i}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}

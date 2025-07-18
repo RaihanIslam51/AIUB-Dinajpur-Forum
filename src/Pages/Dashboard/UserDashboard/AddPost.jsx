@@ -103,8 +103,8 @@ const AddPost = () => {
       title: data.title,
       description: data.description,
       tag: selectedTag.value,
-      upVote: 0,
-      downVote: 0,
+      upVote: [],
+      downVote: [],
       date: new Date(),
     };
 

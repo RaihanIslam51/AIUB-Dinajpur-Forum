@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import {
   FaArrowLeft,
   FaArrowRight,
-  FaCommentDots,
   FaEnvelope,
   FaEye,
   FaFireAlt,
   FaHashtag,
   FaSortAmountDown,
   FaSortAmountUp,
-  FaThumbsDown,
-  FaThumbsUp,
-  FaUser,
+  FaUser
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -167,25 +164,13 @@ const Allposts = () => {
                       <FaEnvelope className="text-green-600" />
                       <span>{post.authorEmail}</span>
                     </div>
-                    <div className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full shadow-inner">
+                    {/* <div className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full shadow-inner">
                       <FaCommentDots className="text-purple-600" />
                       <span>Comments: {post.upVote || 0}</span>
-                    </div>
+                    </div> */}
                   </div>
 
-                  <div className="flex items-center gap-4 font-semibold text-orange-600">
-                    <div className="flex items-center gap-1">
-                      <FaThumbsUp />
-                      <span>{post.upVote || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaThumbsDown />
-                      <span>{post.downVote || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FaFireAlt />
-                      <span>{votes}</span>
-                    </div>
+                  <div className="flex items-center gap-4 font-semibold text-orange-600"> 
                   </div>
                 </div>
 

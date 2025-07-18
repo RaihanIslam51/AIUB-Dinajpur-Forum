@@ -5,6 +5,7 @@ import { FaCalendarAlt, FaSearch, FaTags, FaThumbsDown, FaThumbsUp, FaUser } fro
 import useAxiosSecure from '../../Hooks/AxiosSeure/useAxiosSecure';
 
 const Banner = () => {
+  
   const axiosSecure = useAxiosSecure();
   const [searchTerm, setSearchTerm] = useState('');
   const [submittedTerm, setSubmittedTerm] = useState('');

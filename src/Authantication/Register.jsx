@@ -3,21 +3,19 @@ import { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import toast from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axiosInstance from '../Hooks/AxiosSeure/asiosInstance';
 import { AuthContext } from './Context/AuthContext';
 
 const Register = () => {
-  
   const [errorMessage, setErrorMessage] = useState('');
   const [passwordShow, setPasswordShow] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state || "/"
+  const from = location.state || '/';
 
-  const { createUser, GoogleLogin,setUserData,updateUser } = useContext(AuthContext);
-  
-  
+  const { createUser, GoogleLogin, setUserData, updateUser } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const name = e.target.name.value;
     const photo = e.target.photo.value;
@@ -25,43 +23,71 @@ const Register = () => {
     const password = e.target.password.value;
 
     setErrorMessage('');
-    // Password must have uppercase, lowercase, digit, and at least 6 characters
     const passwordRegEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+
     if (!passwordRegEx.test(password)) {
-      setErrorMessage('Password must include uppercase, lowercase, digit, and be at least 6 characters.');
-      toast.error('Password must include uppercase, lowercase, digit, and be at least 6 characters.');
+      const msg = 'Password must include uppercase, lowercase, digit, and be at least 6 characters.';
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
-    createUser(email, password)
-      .then((result) =>  {
-         toast.success('User create successful');
-       const user=result.user;
-       updateUser({displayName:name,photoURL:photo}).then(()=>{
-         setUserData({...user,displayName:name,photoURL:photo })
-       }).catch(()=>{
-        toast.error('Invalid user');
-        setUserData(user)
-       })
+    try {
+      const result = await createUser(email, password);
+      const user = result.user;
 
-        navigate(from, { replace: true })
-      })
-      .catch((error) => setErrorMessage(error.message));
+      await updateUser({ displayName: name, photoURL: photo });
+      setUserData({ ...user, displayName: name, photoURL: photo });
+
+      // Save user to database
+      const userInfo = {
+        name,
+        photo,
+        email,
+        role: 'user',
+        payment_status: 'Bronze Badge',
+        created_at: new Date().toISOString(),
+        last_log_in: new Date().toISOString()
+      };
+
+      const res = await axiosInstance.post('/users', userInfo);
+      console.log(res.data);
+
+      toast.success('Account created successfully!');
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error(error.message);
+      setErrorMessage(error.message);
+      toast.error('Registration failed.');
+    }
   };
 
-  const handleGoogleLogin = () => {
-    GoogleLogin()
-      .then(() =>
-        {
-        toast.success('User create successfully');
-        navigate(from, { replace: true })
-        })
-      
-      .catch((error) => 
-        {
-        toast.error('Invalid user');
-        setErrorMessage(error.message)
-        });
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await GoogleLogin();
+      const user = result.user;
+
+      const userInfo = {
+        name: user.displayName || 'No Name',
+        photo: user.photoURL || '',
+        email: user.email,
+        role: 'user',
+        payment_status: 'Bronze Badge',
+        created_at: new Date().toISOString(),
+        last_log_in: new Date().toISOString()
+      };
+
+      const res = await axiosInstance.post('/users', userInfo);
+      console.log(res.data);
+
+      setUserData(user);
+      toast.success('Signed in with Google!');
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error(error.message);
+      setErrorMessage(error.message);
+      toast.error('Google sign-in failed.');
+    }
   };
 
   return (
@@ -79,7 +105,6 @@ const Register = () => {
           Create an Account
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
           <div>
             <label htmlFor="name" className="block text-base font-semibold text-green-900 mb-1">Full Name</label>
             <input
@@ -88,10 +113,9 @@ const Register = () => {
               type="text"
               required
               placeholder="Raihan Islam"
-              className="w-full px-5 py-3 border-none rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
+              className="w-full px-5 py-3 rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
             />
           </div>
-          {/* Photo URL */}
           <div>
             <label htmlFor="photo" className="block text-base font-semibold text-green-900 mb-1">Photo URL</label>
             <input
@@ -99,10 +123,9 @@ const Register = () => {
               name="photo"
               type="text"
               placeholder="https://example.com/image.jpg"
-              className="w-full px-5 py-3 border-none rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
+              className="w-full px-5 py-3 rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
             />
           </div>
-          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-base font-semibold text-green-900 mb-1">Email</label>
             <input
@@ -111,10 +134,9 @@ const Register = () => {
               type="email"
               required
               placeholder="you@example.com"
-              className="w-full px-5 py-3 border-none rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
+              className="w-full px-5 py-3 rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
             />
           </div>
-          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-base font-semibold text-green-900 mb-1">Password</label>
             <div className="relative">
@@ -124,7 +146,7 @@ const Register = () => {
                 type={passwordShow ? 'text' : 'password'}
                 required
                 placeholder="Enter password"
-                className="w-full px-5 py-3 border-none rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
+                className="w-full px-5 py-3 rounded-2xl bg-white/80 focus:bg-white focus:ring-4 focus:ring-green-300 text-gray-900 shadow-md transition"
               />
               <span
                 onClick={() => setPasswordShow(!passwordShow)}
@@ -134,11 +156,9 @@ const Register = () => {
               </span>
             </div>
           </div>
-          {/* Error message */}
           {errorMessage && (
             <p className="text-red-600 text-sm font-medium">{errorMessage}</p>
           )}
-          {/* Register button */}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-green-700 via-lime-600 to-emerald-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg hover:scale-105 transition-transform duration-200"
@@ -146,11 +166,13 @@ const Register = () => {
             Register
           </button>
         </form>
+
         <div className="my-6 flex items-center gap-2">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-green-400 to-transparent" />
           <span className="text-green-700 text-sm font-semibold">OR</span>
           <div className="flex-1 h-px bg-gradient-to-l from-transparent via-green-400 to-transparent" />
         </div>
+
         <button
           onClick={handleGoogleLogin}
           className="w-full flex items-center justify-center gap-3 bg-white/90 border border-green-100 py-3 rounded-2xl shadow-md hover:bg-green-50 transition"
@@ -158,7 +180,7 @@ const Register = () => {
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-6 h-6" />
           <span className="font-semibold text-green-800">Sign up with Google</span>
         </button>
-        {/* Link to login page */}
+
         <p className="mt-7 text-center text-base">
           Already have an account?{' '}
           <Link to="/auth/login" className="text-green-700 underline font-bold hover:text-emerald-600 transition">Login</Link>

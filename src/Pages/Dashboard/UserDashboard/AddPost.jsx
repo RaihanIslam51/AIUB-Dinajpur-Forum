@@ -44,15 +44,18 @@ const AddPost = () => {
   const [selectedTag, setSelectedTag] = useState(null);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  // Fetch post count
-  const { data: postCount = 0, isLoading } = useQuery({
+  // Fetch post count and badge
+  const { data: postData, isLoading } = useQuery({
     queryKey: ['userPostCount', UserData?.email],
     enabled: !!UserData?.email,
     queryFn: async () => {
-      const res = await axiosSecure.get(`/addposts/count?email=${UserData.email}`);
-      return res.data.count;
+      const res = await axiosSecure.get(`/posts/count?email=${UserData.email}`);
+      return res.data;
     },
   });
+
+  const postCount = postData?.count || 0;
+  const badge = postData?.badge || 'Bronze Badge';
 
   // Upload image to imgbb
   const handleUploadImage = async (e) => {
@@ -87,6 +90,12 @@ const AddPost = () => {
       Swal.fire('Please select a tag', '', 'warning');
       return;
     }
+
+    if (badge === 'Bronze Badge' && postCount >= 5) {
+      Swal.fire('Post Limit Reached', 'Upgrade to Gold Badge to post more.', 'error');
+      return;
+    }
+
     const postData = {
       authorName: UserData?.displayName,
       authorEmail: UserData?.email,
@@ -120,7 +129,7 @@ const AddPost = () => {
     );
   }
 
-  if (postCount >= 5) {
+  if (badge === 'Bronze Badge' && postCount >= 5) {
     return (
       <section className="max-w-xl mx-auto bg-red-50 border border-red-300 rounded-2xl p-8 text-center shadow-lg mt-10">
         <h2 className="text-3xl font-extrabold text-red-700 mb-3">Post Limit Reached</h2>
@@ -166,29 +175,18 @@ const AddPost = () => {
 
         {/* Author Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative">
-            <input
-              type="text"
-              value={UserData?.displayName || ''}
-              readOnly
-              className="peer w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400"
-            />
-            <label className="absolute left-4 top-1 text-gray-500 text-sm peer-focus:text-indigo-600 pointer-events-none transition-all">
-              Author Name
-            </label>
-          </div>
-
-          <div className="relative">
-            <input
-              type="email"
-              value={UserData?.email || ''}
-              readOnly
-              className="peer w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400"
-            />
-            <label className="absolute left-4 top-1 text-gray-500 text-sm peer-focus:text-indigo-600 pointer-events-none transition-all">
-              Author Email
-            </label>
-          </div>
+          <input
+            type="text"
+            value={UserData?.displayName || ''}
+            readOnly
+            className="rounded-xl border border-gray-300 px-4 py-3 text-gray-800"
+          />
+          <input
+            type="email"
+            value={UserData?.email || ''}
+            readOnly
+            className="rounded-xl border border-gray-300 px-4 py-3 text-gray-800"
+          />
         </div>
 
         {/* Title */}
@@ -199,14 +197,12 @@ const AddPost = () => {
             placeholder=" "
             className={`peer w-full rounded-xl border ${
               errors.title ? 'border-red-500' : 'border-gray-300'
-            } px-4 py-3 focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400 transition`}
+            } px-4 py-3`}
           />
-          <label className="absolute left-4 top-1 text-gray-500 text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-indigo-600 pointer-events-none transition-all">
+          <label className="absolute left-4 top-1 text-gray-500 text-sm transition-all">
             Post Title
           </label>
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-          )}
+          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
         </div>
 
         {/* Description */}
@@ -217,9 +213,9 @@ const AddPost = () => {
             placeholder=" "
             className={`peer w-full rounded-xl border ${
               errors.description ? 'border-red-500' : 'border-gray-300'
-            } px-4 py-3 resize-y focus:outline-indigo-500 focus:ring-2 focus:ring-indigo-400 transition`}
+            } px-4 py-3 resize-y`}
           />
-          <label className="absolute left-4 top-1 text-gray-500 text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-indigo-600 pointer-events-none transition-all">
+          <label className="absolute left-4 top-1 text-gray-500 text-sm transition-all">
             Write your post content...
           </label>
           {errors.description && (

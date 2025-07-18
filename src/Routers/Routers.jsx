@@ -45,6 +45,7 @@ export const router = createBrowserRouter([
     children : [
       {path :"/dashboard/MyProfile",Component:MyProfile},
       {path:"/dashboard/AddPost", Component:AddPost},
+      
       {path:"/dashboard/MyPosts", Component:MyPosts},
       {path:"/dashboard/comment", Component:Comment},
       {path:"/dashboard/AdminProfile",Component:AdminProfile},

@@ -16,7 +16,7 @@ const PaymentForm = () => {
   const [processing, setProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const fixedAmount = 100; 
+  const fixedAmount = 100;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +50,7 @@ const PaymentForm = () => {
       }
 
       const { data } = await axiosSecure.post('/create-payment-intent', {
-        amountInCents: fixedAmount * 100, 
+        amountInCents: fixedAmount * 100,
       });
 
       const clientSecret = data.clientSecret;
@@ -73,25 +73,19 @@ const PaymentForm = () => {
       if (paymentIntent.status === 'succeeded') {
         setSuccessMessage('✅ Payment successful!');
 
-        const paymentData = {
-          email: UserData.email,
-          amount: fixedAmount,
-          transactionId: paymentIntent.id,
-          paymentMethod: paymentIntent.payment_method_types,
-          membership: true,
-        };
+        // ✅ Update user payment_status to "paid"
+        await axiosSecure.patch(`/users/payment-status/${UserData.email}`, {
+          payment_status: 'Gold Badge',
+        });
 
-        const res = await axiosSecure.post('/membership-payment', paymentData);
-        if (res.data.success) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'You are now a Member!',
-            html: `<strong>Transaction ID:</strong> <code>${paymentIntent.id}</code>`,
-            confirmButtonText: 'Go to Home',
-          });
+        await Swal.fire({
+          icon: 'success',
+          title: 'You are now a Member!',
+          html: `<strong>Transaction ID:</strong> <code>${paymentIntent.id}</code>`,
+          confirmButtonText: 'Go to Home',
+        });
 
-          navigate('/');
-        }
+        navigate('/');
       }
     } catch (err) {
       console.error('❌ Payment error:', err);
@@ -104,7 +98,9 @@ const PaymentForm = () => {
   return (
     <div className="max-w-md mx-auto bg-white shadow-md rounded p-6">
       <h2 className="text-xl font-semibold mb-4">Become a Member</h2>
-      <p className="mb-4 text-gray-600">Pay <strong>৳100</strong> to get the Gold badge and post unlimited!</p>
+      <p className="mb-4 text-gray-600">
+        Pay <strong>৳100</strong> to get the Gold badge and post unlimited!
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <CardElement

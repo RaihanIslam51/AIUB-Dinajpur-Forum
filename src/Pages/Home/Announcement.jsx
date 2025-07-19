@@ -17,12 +17,12 @@ const Announcement = () => {
       }
     };
     fetchAnnouncements();
-  }, [axiosSecure]);
+  }, []);
 
   if (!announcements || announcements.length === 0) return null;
 
   return (
-    <section className="my-14 px-4 sm:px-8 md:px-16">
+    <section className="my-14 px-4 sm:px-8 md:px-16 pt-10">
       <div className="flex items-center gap-3 mb-6">
         <FaBullhorn className="text-3xl text-orange-500" />
         <h2 className="text-3xl font-extrabold text-gray-800">Latest Announcements</h2>

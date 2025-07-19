@@ -13,7 +13,6 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useParams } from "react-router-dom";
-import { FacebookShareButton } from "react-share";
 
 import useAuth from "../../Hooks/AxiosSeure/useAuth";
 import useAxiosSesure from "../../Hooks/AxiosSeure/useAxiosSecure";
@@ -154,40 +153,60 @@ const DetailsPost = () => {
       <Toaster position="top-right" />
       <main className="pt-20 px-4 max-w-5xl mx-auto">
         <article className="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
-          {/* Post Image */}
-          <motion.img
-            src={post.authorImage}
-            alt={post.title}
-            className="w-full h-96 object-cover object-center rounded-t-3xl"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1 }}
-            loading="lazy"
-          />
+          {/* Redesigned Post Image + Author Info Section */}
+          <section className="relative rounded-t-3xl overflow-hidden">
+            {/* Blurred background */}
+            <motion.img
+              src={post.authorImage}
+              alt={post.authorName}
+              className="absolute inset-0 w-full h-full object-cover filter blur-3xl brightness-75 scale-110"
+              aria-hidden="true"
+            />
+            
+            {/* Overlay to darken for contrast */}
+            <div className="absolute inset-0 bg-black/30" />
 
-          <section className="p-8">
-            {/* Post Title and Meta */}
-            <header className="mb-6">
-              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{post.title}</h1>
-              <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm">
-                <div className="flex items-center gap-1">
-                  <FaUser />
-                  <span>{post.authorName}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <FaEnvelope />
-                  <span>{post.authorEmail}</span>
-                </div>
+            {/* Author avatar and info container */}
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 p-8">
+              {/* Circular avatar with ring and shadow */}
+              <motion.img
+                src={post.authorImage}
+                alt={post.authorName}
+                className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 1 }}
+                loading="lazy"
+              />
+              
+              {/* Author details */}
+              <div className="text-white max-w-xl">
+                <h1 className="text-4xl font-extrabold drop-shadow-md">{post.title}</h1>
+                <p className="mt-2 text-lg drop-shadow-md flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <span className="flex items-center gap-2">
+                    <FaUser /> <span>{post.authorName}</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <FaEnvelope /> <span>{post.authorEmail}</span>
+                  </span>
+                </p>
                 <time
                   dateTime={post.date}
-                  className="ml-auto"
+                  className="block mt-2 text-sm italic drop-shadow-md"
                   title={new Date(post.date).toLocaleString()}
                 >
-                  {new Date(post.date).toLocaleString()}
+                  {new Date(post.date).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </time>
               </div>
-            </header>
+            </div>
+          </section>
 
+          <section className="p-8">
             {/* Post Description */}
             <section className="text-gray-700 leading-relaxed mb-8 whitespace-pre-wrap">
               {post.description}
@@ -243,62 +262,84 @@ const VoteButtons = ({
   title,
   canShare,
   onVote,
-}) => (
-  <section
-    className="flex flex-wrap gap-4 justify-between items-center mb-10"
-    aria-label="Vote and Share actions"
-  >
-    <div className="flex gap-4">
-      <motion.button
-        onClick={() => onVote("up")}
-        disabled={!canVote}
-        aria-label="Upvote post"
-        whileTap={{ scale: 0.9 }}
-        className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-green-500 text-green-600 font-semibold transition-colors ${
-          canVote ? "hover:bg-green-50" : "opacity-50 cursor-not-allowed"
-        }`}
-      >
-        <FaThumbsUp size={20} /> Upvote ({upVote})
-      </motion.button>
+}) => {
+  // Custom share handler
+  const handleShare = async () => {
+    if (!canShare) {
+      toast.error("Please login to share.");
+      return;
+    }
 
-      <motion.button
-        onClick={() => onVote("down")}
-        disabled={!canVote}
-        aria-label="Downvote post"
-        whileTap={{ scale: 0.9 }}
-        className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500 text-red-600 font-semibold transition-colors ${
-          canVote ? "hover:bg-red-50" : "opacity-50 cursor-not-allowed"
-        }`}
-      >
-        <FaThumbsDown size={20} /> Downvote ({downVote})
-      </motion.button>
-    </div>
+    if (navigator.share) {
+      // Use native share if available (mobile mostly)
+      try {
+        await navigator.share({
+          title,
+          url: shareUrl,
+        });
+        toast.success("Shared successfully!");
+      } catch (error) {
+        toast.error("Share cancelled or failed.");
+      }
+    } else if (navigator.clipboard) {
+      // Fallback: copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+      } catch {
+        toast.error("Failed to copy link.");
+      }
+    } else {
+      toast.error("Sharing not supported in this browser.");
+    }
+  };
 
-    {canShare ? (
-      <FacebookShareButton url={shareUrl} quote={title}>
-        <motion.div
-          role="button"
-          tabIndex={0}
+  return (
+    <section
+      className="flex pt-5 flex-wrap gap-4 justify-between items-center mb-10"
+      aria-label="Vote and Share actions"
+    >
+      <div className="flex gap-4">
+        <motion.button
+          onClick={() => onVote("up")}
+          disabled={!canVote}
+          aria-label="Upvote post"
           whileTap={{ scale: 0.9 }}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl border border-blue-500 text-blue-600 font-semibold cursor-pointer hover:bg-blue-50 select-none"
-          title="Share on Facebook"
-          onKeyPress={(e) => {
-            if (e.key === "Enter") e.currentTarget.click();
-          }}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-green-500 text-green-600 font-semibold transition-colors ${
+            canVote ? "hover:bg-green-50" : "opacity-50 cursor-not-allowed"
+          }`}
         >
-          <FaShareAlt size={20} /> Share
-        </motion.div>
-      </FacebookShareButton>
-    ) : (
-      <div
-        className="flex items-center gap-2 px-5 py-3 rounded-xl border border-blue-500 text-blue-600 font-semibold opacity-50 cursor-not-allowed select-none"
-        title="Login to share"
+          <FaThumbsUp size={20} /> Upvote ({upVote})
+        </motion.button>
+
+        <motion.button
+          onClick={() => onVote("down")}
+          disabled={!canVote}
+          aria-label="Downvote post"
+          whileTap={{ scale: 0.9 }}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500 text-red-600 font-semibold transition-colors ${
+            canVote ? "hover:bg-red-50" : "opacity-50 cursor-not-allowed"
+          }`}
+        >
+          <FaThumbsDown size={20} /> Downvote ({downVote})
+        </motion.button>
+      </div>
+
+      <motion.button
+        onClick={handleShare}
+        disabled={!canShare}
+        aria-label="Share post"
+        whileTap={{ scale: 0.9 }}
+        className={`flex items-center gap-2 px-5 py-3 rounded-xl border border-blue-500 text-blue-600 font-semibold transition-colors ${
+          canShare ? "hover:bg-blue-50 cursor-pointer" : "opacity-50 cursor-not-allowed"
+        }`}
+        title={canShare ? "Share this post" : "Login to share"}
       >
         <FaShareAlt size={20} /> Share
-      </div>
-    )}
-  </section>
-);
+      </motion.button>
+    </section>
+  );
+};
 
 const CommentsSection = ({
   comments,
@@ -310,8 +351,12 @@ const CommentsSection = ({
   canComment,
 }) => (
   <section aria-label="Comments section">
-    <h2 className="text-3xl font-bold mb-6 border-b pb-2 border-gray-300 flex items-center gap-3">
-      <FaComments className="text-blue-600" /> Comments
+    <h2 className="flex items-center gap-3 mb-6 border-b border-gray-300 pb-2 text-3xl font-extrabold text-gray-900 select-none">
+      <FaComments className="text-blue-600 text-4xl drop-shadow-sm" />
+      <span>Comments</span>
+      <span className="ml-2 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1.5 shadow-md select-text">
+        {comments.length}
+      </span>
     </h2>
 
     {canComment ? (

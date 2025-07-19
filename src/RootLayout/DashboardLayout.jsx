@@ -1,56 +1,94 @@
-import { FaArrowLeft } from 'react-icons/fa';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import {
+  FaArrowLeft,
+  FaBullhorn,
+  FaClipboardList,
+  FaCommentAlt,
+  FaPlusCircle,
+  FaUserCircle,
+  FaUsersCog,
+} from 'react-icons/fa';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // jokhon path /dashboard or /dashboard/ thakbe tokhon redirect korbe /dashboard/MyProfile e
+    if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
+      navigate('/dashboard/MyProfile', { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
   const linkClass = ({ isActive }) =>
-    `block px-4 py-2 rounded-md text-base font-medium transition ${
-      isActive ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-100'
+    `flex items-center gap-3 px-4 py-3 rounded-md text-base font-semibold transition ${
+      isActive
+        ? 'bg-indigo-600 text-white shadow-lg'
+        : 'text-gray-700 hover:bg-indigo-100 hover:text-indigo-700'
     }`;
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gradient-to-br from-indigo-50 via-white to-indigo-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md p-4 space-y-4 hidden md:block">
-        <h2 className="text-2xl font-bold text-indigo-600 mb-6">Dashboard</h2>
-        <nav className="space-y-2">
+      <aside className="w-72 bg-white shadow-lg p-6 flex flex-col">
+        <h2 className="text-3xl font-extrabold text-indigo-600 mb-8 select-none">
+          Dashboard
+        </h2>
+        <nav className="flex flex-col space-y-3 flex-1">
           <NavLink to="/dashboard/MyProfile" className={linkClass}>
+            <FaUserCircle size={20} />
             My Profile
           </NavLink>
+
           <NavLink to="/dashboard/AddPost" className={linkClass}>
+            <FaPlusCircle size={20} />
             Add Post
           </NavLink>
+
           <NavLink to="/dashboard/MyPosts" className={linkClass}>
+            <FaClipboardList size={20} />
             My Posts
           </NavLink>
+
           <NavLink to="/dashboard/AdminProfile" className={linkClass}>
+            <FaUserCircle size={20} />
             Admin Profile
           </NavLink>
+
           <NavLink to="/dashboard/ManageUsers" className={linkClass}>
+            <FaUsersCog size={20} />
             Manage Users
           </NavLink>
+
           <NavLink to="/dashboard/ReportedComments" className={linkClass}>
-           Reported Comments
+            <FaCommentAlt size={20} />
+            Reported Comments
           </NavLink>
-           <NavLink to="/dashboard/MakeAnnouncement" className={linkClass}>
-           Make Announcement
+
+          <NavLink to="/dashboard/MakeAnnouncement" className={linkClass}>
+            <FaBullhorn size={20} />
+            Make Announcement
           </NavLink>
         </nav>
+
+        {/* Back to Home Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="mt-auto text-indigo-600 hover:text-indigo-900 font-semibold flex items-center gap-2"
+        >
+          <FaArrowLeft />
+          Back to Home
+        </button>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="mb-4 inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Home
-        </button>
+      <main className="flex-1 p-10 bg-white rounded-tl-3xl shadow-lg">
+        <h1 className="text-4xl font-extrabold text-indigo-700 mb-6 select-none">
+          Welcome to Your Dashboard
+        </h1>
 
-        <h2 className="text-3xl font-semibold text-indigo-700 mb-4">Dashboard</h2>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-indigo-50 rounded-xl p-8 shadow-inner min-h-[70vh]">
           <Outlet />
         </div>
       </main>

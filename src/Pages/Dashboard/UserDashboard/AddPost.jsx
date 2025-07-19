@@ -42,7 +42,12 @@ const AddPost = () => {
   const axiosSecure = useAxiosSecure();
   const [authorImage, setAuthorImage] = useState('');
   const [selectedTag, setSelectedTag] = useState(null);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   // Fetch post count and badge
   const { data: postData, isLoading } = useQuery({
@@ -152,7 +157,7 @@ const AddPost = () => {
         Create a New Post
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 relative">
         {/* Image Upload */}
         <div>
           <label className="block mb-2 font-semibold text-gray-700">Upload Author Image</label>
@@ -179,27 +184,36 @@ const AddPost = () => {
             type="text"
             value={UserData?.displayName || ''}
             readOnly
-            className="rounded-xl border border-gray-300 px-4 py-3 text-gray-800"
+            className="rounded-3xl border-2 border-indigo-300 px-6 py-4 text-gray-800 font-semibold"
           />
           <input
             type="email"
             value={UserData?.email || ''}
             readOnly
-            className="rounded-xl border border-gray-300 px-4 py-3 text-gray-800"
+            className="rounded-3xl border-2 border-indigo-300 px-6 py-4 text-gray-800 font-semibold"
           />
         </div>
 
         {/* Title */}
         <div className="relative">
           <input
+            id="title"
             type="text"
             {...register('title', { required: 'Title is required' })}
             placeholder=" "
-            className={`peer w-full rounded-xl border ${
-              errors.title ? 'border-red-500' : 'border-gray-300'
-            } px-4 py-3`}
+            className={`peer w-full rounded-3xl border-2 ${
+              errors.title ? 'border-red-500' : 'border-indigo-300'
+            } px-6 py-4 text-xl font-semibold transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-md`}
           />
-          <label className="absolute left-4 top-1 text-gray-500 text-sm transition-all">
+          <label
+            htmlFor="title"
+            className="absolute left-6 top-3 text-indigo-400 text-lg font-semibold
+            peer-placeholder-shown:opacity-100
+            peer-placeholder-shown:top-6
+            peer-focus:opacity-0
+            peer-focus:top-0
+            transition-all duration-300 cursor-text select-none"
+          >
             Post Title
           </label>
           {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
@@ -208,14 +222,23 @@ const AddPost = () => {
         {/* Description */}
         <div className="relative">
           <textarea
+            id="description"
             rows={6}
             {...register('description', { required: 'Description is required' })}
             placeholder=" "
-            className={`peer w-full rounded-xl border ${
-              errors.description ? 'border-red-500' : 'border-gray-300'
-            } px-4 py-3 resize-y`}
+            className={`peer w-full rounded-3xl border-2 ${
+              errors.description ? 'border-red-500' : 'border-indigo-300'
+            } px-6 py-4 text-lg font-semibold resize-y transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-md`}
           />
-          <label className="absolute left-4 top-1 text-gray-500 text-sm transition-all">
+          <label
+            htmlFor="description"
+            className="absolute left-6 top-3 text-indigo-400 text-lg font-semibold
+            peer-placeholder-shown:opacity-100
+            peer-placeholder-shown:top-6
+            peer-focus:opacity-0
+            peer-focus:top-0
+            transition-all duration-300 cursor-text select-none"
+          >
             Write your post content...
           </label>
           {errors.description && (

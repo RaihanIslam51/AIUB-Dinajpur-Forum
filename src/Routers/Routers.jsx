@@ -11,6 +11,7 @@ import Comment from "../Pages/Dashboard/Comment/Comment";
 import AddPost from "../Pages/Dashboard/UserDashboard/AddPost";
 import MyPosts from "../Pages/Dashboard/UserDashboard/MyPosts";
 import MyProfile from "../Pages/Dashboard/UserDashboard/MyProfile";
+import Forbidden from "../Pages/Forbidden/Forbidden";
 import Announcement from "../Pages/Home/Announcement";
 import DetailsPost from "../Pages/Home/DetailsPost";
 import HomePage from "../Pages/Home/HomePage";
@@ -19,6 +20,7 @@ import Profile from "../Pages/Shared/Profile";
 import AuthRoot from "../RootLayout/AuthRoot";
 import DashboardLayout from "../RootLayout/DashboardLayout";
 import RootLayout from "../RootLayout/RootLayout";
+import AdminRoute from "./AdminRoutes";
 // import PrivateRoute from "./PrivateRoutes";
 export const router = createBrowserRouter([
   {
@@ -31,7 +33,8 @@ export const router = createBrowserRouter([
         
   },
       {path:"/postDetails/:id",Component:DetailsPost},
-      {path:"/notifications", Component:Announcement}
+      {path:"/notifications", Component:Announcement},
+        {path: "/forbidden",Component: Forbidden},
     ]
   },
   {
@@ -53,10 +56,10 @@ export const router = createBrowserRouter([
       
       {path:"/dashboard/MyPosts", Component:MyPosts},
       {path:'/dashboard/comment', Component:Comment},
-      {path:"/dashboard/AdminProfile",Component:AdminProfile},
-      {path:"/dashboard/ManageUsers", Component:ManageUsers},
-      {path:"/dashboard/ReportedComments", Component:ReportedComments},
-      {path:"/dashboard/MakeAnnouncement", Component:MakeAnnouncement}
+      {path:"/dashboard/AdminProfile",element:<AdminRoute><AdminProfile></AdminProfile></AdminRoute>},
+      {path:"/dashboard/ManageUsers", element:<AdminRoute><ManageUsers></ManageUsers></AdminRoute>},
+      {path:"/dashboard/ReportedComments", element:<AdminRoute><ReportedComments></ReportedComments></AdminRoute>},
+      {path:"/dashboard/MakeAnnouncement",element:<AdminRoute><MakeAnnouncement></MakeAnnouncement></AdminRoute>}
     ]
   }
 ]);

@@ -98,7 +98,7 @@ const Navbar = () => {
             to="/notifications"
             className="relative group px-4 py-2 rounded-lg font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 transition flex items-center"
           >
-            <span>Notifs 🔔</span>
+            <span>🔔</span>
             {announcements.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-lg">
                 {announcements.length}

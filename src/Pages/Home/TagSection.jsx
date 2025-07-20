@@ -11,7 +11,7 @@ const TagSection = () => {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await axiosSecure.get('/tags'); // All posts
+        const res = await axiosSecure.get('/tagss'); // All posts
         const posts = res.data;
 
         // Extract unique tags
@@ -23,6 +23,9 @@ const TagSection = () => {
     };
     fetchTags();
   }, [axiosSecure]);
+
+  console.log("all tags",tags);
+  
 
   const handleTagClick = (tag) => {
     navigate(`/search?tag=${encodeURIComponent(tag)}`);

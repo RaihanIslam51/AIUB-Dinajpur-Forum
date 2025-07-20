@@ -1,26 +1,22 @@
 import axios from "axios";
 import { BadgeCheck, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
 import useAuth from "../../../Hooks/AxiosSeure/useAuth";
 import useAxiosSesure from "../../../Hooks/AxiosSeure/useAxiosSecure";
 
 const MyProfile = () => {
   const { UserData } = useAuth();
-  const { register, handleSubmit, reset } = useForm();
-  const navigate = useNavigate();
   const axiosSecure = useAxiosSesure();
 
   const [profilePic, setProfilePic] = useState(UserData?.image || "");
   const [badge, setBadge] = useState("bronze");
   const [dbUser, setDbUser] = useState({});
   const [postCount, setPostCount] = useState(0);
-
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch user info and post count
   useEffect(() => {
     const fetchUserAndPostsCount = async () => {
       if (UserData?.email) {
@@ -31,7 +27,7 @@ const MyProfile = () => {
           setProfilePic(user?.image || UserData?.image || "");
           setBadge(user?.payment_status?.toLowerCase().includes("gold") ? "gold" : "bronze");
 
-          const postRes = await axiosSecure.get(`/posts/count?email=${UserData.email}`);
+          const postRes = await axiosSecure.get(`/posts/counts?email=${UserData.email}`);
           setPostCount(postRes.data.count || 0);
         } catch (err) {
           console.error("Fetch failed:", err);
@@ -41,10 +37,16 @@ const MyProfile = () => {
     fetchUserAndPostsCount();
   }, [UserData, axiosSecure]);
 
+  console.log("dbuser",dbUser);
+  
+
+  // ✅ Fetch only this user's posts
   useEffect(() => {
     const fetchPosts = async () => {
+      if (!UserData?.email) return;
+
       try {
-        const res = await axiosSecure.get("/allpost");
+        const res = await axiosSecure.get(`/mypost?email=${UserData.email}`);
         const sorted = res.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         setPosts(sorted);
         setLoadingPosts(false);
@@ -55,7 +57,7 @@ const MyProfile = () => {
       }
     };
     fetchPosts();
-  }, [axiosSecure]);
+  }, [UserData?.email, axiosSecure]);
 
   const handleUploadImg = async (e) => {
     const image = e.target.files[0];
@@ -75,7 +77,6 @@ const MyProfile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-100 via-white to-indigo-100 py-16 px-6 sm:px-12">
       <div className="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl p-12 space-y-14">
-
         {/* PROFILE HEADER */}
         <div className="flex flex-col md:flex-row items-center gap-10">
           <div className="relative group w-40 h-40 rounded-full overflow-hidden ring-8 ring-indigo-300 hover:ring-indigo-500 transition-all duration-300 shadow-2xl cursor-pointer">
@@ -111,13 +112,15 @@ const MyProfile = () => {
               />
             </h1>
 
-            <p className="text-indigo-600 font-semibold tracking-wide text-xl select-text">{dbUser?.email}</p>
+            <p className="text-indigo-600 font-semibold tracking-wide text-xl select-text">
+              {dbUser?.email}
+            </p>
 
             <div className="flex flex-wrap gap-8 mt-6 text-gray-700 text-lg font-semibold">
               {[
                 {
                   label: "Total Posts",
-                  value: posts.length,
+                  value: postCount,
                   bg: "bg-indigo-100",
                   text: "text-indigo-700",
                 },
@@ -150,7 +153,7 @@ const MyProfile = () => {
                   className={`flex flex-col items-center rounded-xl p-6 shadow-inner w-36 ${bg} ${text}`}
                 >
                   <span
-                    className={`text-3xl font-extrabold ${
+                    className={`text-2xl font-extrabold ${
                       badge === "gold" && label === "Membership" ? "text-yellow-900" : text
                     }`}
                   >

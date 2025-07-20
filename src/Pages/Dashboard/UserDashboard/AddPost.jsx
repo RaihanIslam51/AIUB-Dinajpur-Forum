@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Select from 'react-select';
@@ -40,6 +40,7 @@ const customSelectStyles = {
 const AddPost = () => {
   const { UserData } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const queryClient = useQueryClient(); // React Query client to manage cache
   const [authorImage, setAuthorImage] = useState('');
   const [selectedTag, setSelectedTag] = useState(null);
   const {
@@ -49,18 +50,32 @@ const AddPost = () => {
     formState: { errors },
   } = useForm();
 
-  // Fetch post count and badge
-  const { data: postData, isLoading } = useQuery({
-    queryKey: ['userPostCount', UserData?.email],
-    enabled: !!UserData?.email,
+  // Fetch user info (to get payment_status aka badge)
+  const { data: userInfo, isLoading: userLoading } = useQuery({
+    queryKey: ['userInfo', UserData?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/posts/count?email=${UserData.email}`);
-      return res.data;
+      if (!UserData?.email) return null;
+      const userRes = await axiosSecure.get(`/users?email=${UserData.email}`);
+      return userRes.data; // expecting array from API
     },
+    enabled: !!UserData?.email,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const postCount = postData?.count || 0;
-  const badge = postData?.badge || 'Bronze Badge';
+  // Extract payment_status safely from userInfo array, default to 'Bronze Badge'
+  const badge = userInfo?.[0]?.payment_status || 'Bronze Badge';
+
+  // Fetch user's posts
+  const { data: postData = [], isLoading: postsLoading } = useQuery({
+    queryKey: ['userPostCount', UserData?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/mypost?email=${UserData.email}`);
+      return res.data;
+    },
+    enabled: !!UserData?.email,
+  });
+
+  const postCount = postData.length || 0;
 
   // Upload image to imgbb
   const handleUploadImage = async (e) => {
@@ -85,7 +100,7 @@ const AddPost = () => {
     }
   };
 
-  // Submit handler
+  // Handle form submit
   const onSubmit = async (data) => {
     if (!authorImage) {
       Swal.fire('Please upload an author image', '', 'warning');
@@ -101,7 +116,7 @@ const AddPost = () => {
       return;
     }
 
-    const postData = {
+    const newPost = {
       authorName: UserData?.displayName,
       authorEmail: UserData?.email,
       authorImage,
@@ -114,19 +129,21 @@ const AddPost = () => {
     };
 
     try {
-      const res = await axiosSecure.post('/addposts', postData);
+      const res = await axiosSecure.post('/addposts', newPost);
       if (res.data.insertedId) {
         Swal.fire('Post Added Successfully', '', 'success');
         reset();
         setAuthorImage('');
         setSelectedTag(null);
+        // Refresh post count after new post added
+        queryClient.invalidateQueries(['userPostCount', UserData?.email]);
       }
     } catch {
       Swal.fire('Failed to Submit Post', '', 'error');
     }
   };
 
-  if (isLoading) {
+  if (userLoading || postsLoading) {
     return (
       <div className="flex justify-center items-center min-h-[40vh] text-indigo-600 text-xl font-semibold">
         Loading your posts...
@@ -173,7 +190,6 @@ const AddPost = () => {
               src={authorImage}
               alt="Author preview"
               className="mt-4 w-28 h-28 object-cover rounded-full border-4 border-indigo-300 shadow-lg mx-auto transition-opacity duration-500"
-              style={{ opacity: authorImage ? 1 : 0 }}
             />
           )}
         </div>

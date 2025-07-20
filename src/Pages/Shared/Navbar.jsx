@@ -14,10 +14,9 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
-
   const profileRef = useRef(null);
 
-  // Fetch announcements on mount
+  // Fetch announcements once on mount
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
@@ -28,16 +27,15 @@ const Navbar = () => {
       }
     };
     fetchAnnouncements();
-  }, []);
+  }, [axiosSecure]);
 
-  // Close profile dropdown on outside click
+  // Handle click outside profile dropdown to close it
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -56,12 +54,13 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Membership', path: '/membership' },
-    { name: 'Dashboard', path: '/dashboard' },
+    ...(UserData ? [{ name: 'Dashboard', path: '/dashboard' }] : [])
   ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-white/90 via-blue-50/80 to-white/90 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-xl backdrop-blur-lg border-b border-blue-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center h-20">
+        
         {/* Logo */}
         <NavLink
           to="/"
@@ -76,7 +75,7 @@ const Navbar = () => {
           </span>
         </NavLink>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-7">
           {navLinks.map(({ name, path }) => (
             <NavLink
@@ -107,7 +106,7 @@ const Navbar = () => {
             )}
           </NavLink>
 
-          {/* Authentication */}
+          {/* Auth Section */}
           {!UserData ? (
             <NavLink
               to="/auth/login"
@@ -119,7 +118,7 @@ const Navbar = () => {
           ) : (
             <div className="relative" ref={profileRef}>
               <button
-                onClick={() => setProfileOpen((prev) => !prev)}
+                onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 focus:outline-none group"
               >
                 <img
@@ -164,7 +163,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Toggle Button */}
         <button
           className="md:hidden text-blue-700 dark:text-blue-300 focus:outline-none"
           onClick={() => setOpen(!open)}

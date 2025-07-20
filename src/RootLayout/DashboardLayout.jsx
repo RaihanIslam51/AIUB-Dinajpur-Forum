@@ -9,10 +9,15 @@ import {
   FaUsersCog,
 } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import useUserRole from '../Hooks/useUserRole';
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+    const { role, roleLoading } = useUserRole()
+    console.log("role show", role);
+
 
   useEffect(() => {
     // jokhon path /dashboard or /dashboard/ thakbe tokhon redirect korbe /dashboard/MyProfile e
@@ -50,7 +55,8 @@ const DashboardLayout = () => {
             <FaClipboardList size={20} />
             My Posts
           </NavLink>
-
+           {!roleLoading && role === 'admin' &&
+         <>
           <NavLink to="/dashboard/AdminProfile" className={linkClass}>
             <FaUserCircle size={20} />
             Admin Profile
@@ -70,6 +76,9 @@ const DashboardLayout = () => {
             <FaBullhorn size={20} />
             Make Announcement
           </NavLink>
+          </>
+            }
+
         </nav>
 
         {/* Back to Home Button */}

@@ -1,27 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
-
+import { useEffect, useState } from 'react';
+import useAuth from './AxiosSeure/useAuth';
 import useAxiosSecure from './AxiosSeure/useAxiosSecure';
 
-import useAuth from './AxiosSeure/useAuth';
-
 const useUserRole = () => {
-    const { UserData, loading: authLoading } = useAuth()
-    const axiosSecure = useAxiosSecure()
+  const { UserData, loading: authLoading } = useAuth();
+  const axiosSecure = useAxiosSecure();
 
-    const {
-        data: role = 'user',
-        isLoading: roleLoading,
-        refetch,
-    } = useQuery({
-        queryKey: ['userRole', UserData?.email],
-        enabled: !authLoading && !!UserData?.email,
-        queryFn: async () => {
-            const res = await axiosSecure.get(`/userss/${UserData.email}/role`);
-            return res.data.role;
-        },
-    });
+  const [role, setRole] = useState('user');
+  const [roleLoading, setRoleLoading] = useState(true);
 
-    return { role, roleLoading: authLoading || roleLoading, refetch };
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (UserData?.email) {
+        try {
+          setRoleLoading(true);
+          const res = await axiosSecure.get(`/users/${UserData.email}/role`);
+          setRole(res.data.role || 'user');
+        } catch (error) {
+          console.error('Failed to fetch user role:', error);
+          setRole('user');
+        } finally {
+          setRoleLoading(false);
+        }
+      }
+    };
+
+    if (!authLoading && UserData?.email) {
+      fetchRole();
+    }
+  }, [UserData, authLoading, axiosSecure]);
+
+  return { role, roleLoading };
 };
 
 export default useUserRole;

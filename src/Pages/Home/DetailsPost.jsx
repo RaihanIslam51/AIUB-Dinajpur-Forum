@@ -18,6 +18,7 @@ import useAuth from "../../Hooks/AxiosSeure/useAuth";
 import useAxiosSesure from "../../Hooks/AxiosSeure/useAxiosSecure";
 
 const DetailsPost = () => {
+  console.log("Inside the details post")
   const { id } = useParams();
   const axiosSecure = useAxiosSesure();
   const { UserData } = useAuth();

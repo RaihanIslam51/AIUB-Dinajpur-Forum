@@ -75,7 +75,7 @@ const AuthProvider = ({ children }) => {
     //   }).catch((error) => {
     //     console.error("Error fetching JWT:", error);
     //  })
-    //   setLoading(false);
+      setLoading(false);
     // });
 
     return () => unSubscribe();

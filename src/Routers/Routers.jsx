@@ -21,45 +21,58 @@ import AuthRoot from "../RootLayout/AuthRoot";
 import DashboardLayout from "../RootLayout/DashboardLayout";
 import RootLayout from "../RootLayout/RootLayout";
 import AdminRoute from "./AdminRoutes";
-// import PrivateRoute from "./PrivateRoutes";
+import PrivateRoute from "./PrivateRoutes";
+import NewPrivateRoute from "./NewPrivateRoute";
+import PageError from "../Pages/404Page/PageError";
+
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component:RootLayout,
-    children :[
-      {index:true, path:"/", Component:HomePage},
-      {path:"/membership", 
-        element : <Membership></Membership>
-        
-  },
-      {path:"/postDetails/:id",Component:DetailsPost},
-      {path:"/notifications", Component:Announcement},
-        {path: "/forbidden",Component: Forbidden},
+    Component: RootLayout,
+    children: [
+      { index: true, path: "/", Component: HomePage },
+      {
+        path: "/membership",
+        element: <Membership></Membership>
+
+
+      },
+      {
+         path: "/postDetails/:id",
+         element: <NewPrivateRoute><DetailsPost></DetailsPost></NewPrivateRoute>
+        //  element: <DetailsPost></DetailsPost> 
+        //  element: <PrivateRoute><DetailsPost></DetailsPost></PrivateRoute> 
+      },
+      { path: "/notifications", Component: Announcement },
+      { path: "/forbidden", Component: Forbidden },
     ]
+  },
+  {
+    path:"*",Component:PageError
   },
   {
     path: "/auth",
-    Component :AuthRoot,
-       children:[
-      {path:"/auth/register", Component:Register},
-      {path:"/auth/login", Component:SignIn},
-      {path:"/auth/profile", Component:Profile}
+    Component: AuthRoot,
+    children: [
+      { path: "/auth/register", Component: Register },
+      { path: "/auth/login", Component: SignIn },
+      { path: "/auth/profile", Component: Profile }
     ]
-    
+
   },
   {
     path: "/dashboard",
-    Component :DashboardLayout,
-    children : [
-      {path :"/dashboard/MyProfile",Component:MyProfile},
-      {path:"/dashboard/AddPost", Component:AddPost},
-      
-      {path:"/dashboard/MyPosts", Component:MyPosts},
-      {path:'/dashboard/comment', Component:Comment},
-      {path:"/dashboard/AdminProfile",element:<AdminRoute><AdminProfile></AdminProfile></AdminRoute>},
-      {path:"/dashboard/ManageUsers", element:<AdminRoute><ManageUsers></ManageUsers></AdminRoute>},
-      {path:"/dashboard/ReportedComments", element:<AdminRoute><ReportedComments></ReportedComments></AdminRoute>},
-      {path:"/dashboard/MakeAnnouncement",element:<AdminRoute><MakeAnnouncement></MakeAnnouncement></AdminRoute>}
+    element: <DashboardLayout></DashboardLayout>,
+    children: [
+      { path: "/dashboard/MyProfile", Component: MyProfile },
+      { path: "/dashboard/AddPost", Component: AddPost },
+
+      { path: "/dashboard/MyPosts", Component: MyPosts },
+      { path: '/dashboard/comment', Component: Comment },
+      { path: "/dashboard/AdminProfile", element: <AdminRoute><AdminProfile></AdminProfile></AdminRoute> },
+      { path: "/dashboard/ManageUsers", element: <AdminRoute><ManageUsers></ManageUsers></AdminRoute> },
+      { path: "/dashboard/ReportedComments", element: <AdminRoute><ReportedComments></ReportedComments></AdminRoute> },
+      { path: "/dashboard/MakeAnnouncement", element: <AdminRoute><MakeAnnouncement></MakeAnnouncement></AdminRoute> }
     ]
   }
 ]);

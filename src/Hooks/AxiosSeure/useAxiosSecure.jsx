@@ -6,10 +6,13 @@ const axiosSecure = axios.create({
   baseURL: 'http://localhost:3000',
 });
 
+
+
 // Custom hook to set up interceptor
 const useAxiosSecure = () => {
   const { UserData } = useAuth();
-
+  // console.log("userrrr",UserData?.accessToken);
+  
   // Attach the token to request headers
   axiosSecure.interceptors.request.use(
     (config) => {

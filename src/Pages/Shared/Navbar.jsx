@@ -16,7 +16,6 @@ const Navbar = () => {
   const [announcements, setAnnouncements] = useState([]);
   const profileRef = useRef(null);
 
-  // Fetch announcements once on mount
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
@@ -29,7 +28,6 @@ const Navbar = () => {
     fetchAnnouncements();
   }, [axiosSecure]);
 
-  // Handle click outside profile dropdown to close it
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -58,49 +56,49 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-white/90 via-blue-50/80 to-white/90 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-xl backdrop-blur-lg border-b border-blue-100 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center h-20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white text-black border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
         
         {/* Logo */}
         <NavLink
           to="/"
           onClick={scrollToTop}
-          className="flex items-center gap-2 text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-green-400 to-blue-400 bg-clip-text text-transparent select-none"
+          className="flex items-center gap-2 text-2xl font-bold tracking-tight text-gray-800 hover:text-blue-600 transition"
         >
           <span className="inline-block w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold shadow">
             🗨️
           </span>
-          <span className="truncate">
-            Talk<span className="font-light text-gray-700 dark:text-gray-200">Sphere</span>
+          <span>
+            Talk<span className="font-light text-gray-500">Sphere</span>
           </span>
         </NavLink>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-7">
+        <div className="hidden md:flex items-center space-x-6">
           {navLinks.map(({ name, path }) => (
             <NavLink
               key={name}
               to={path}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                `px-4 py-2 rounded-md font-medium transition ${
                   isActive
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow'
-                    : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600'
+                    ? 'bg-gray-100 text-blue-600 shadow-sm'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100'
                 }`
               }
             >
-              <span>{name}</span>
+              {name}
             </NavLink>
           ))}
 
           {/* Notifications */}
           <NavLink
             to="/notifications"
-            className="relative group px-4 py-2 rounded-lg font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 transition flex items-center"
+            className="relative px-4 py-2 rounded-md font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition"
           >
-            <span>🔔</span>
+            🔔
             {announcements.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-lg">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow">
                 {announcements.length}
               </span>
             )}
@@ -110,50 +108,46 @@ const Navbar = () => {
           {!UserData ? (
             <NavLink
               to="/auth/login"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-gray-700 dark:text-gray-200 bg-gradient-to-r from-green-100 to-blue-100 dark:from-gray-800 dark:to-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 transition"
+              className="flex items-center gap-2 px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition"
             >
               <CgLogIn />
-              <span>Join Us</span>
+              Join Us
             </NavLink>
           ) : (
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 focus:outline-none group"
+                className="flex items-center gap-2 focus:outline-none"
               >
                 <img
                   src={UserData.photoURL || '/default-avatar.png'}
                   alt="Profile"
-                  className="w-11 h-11 rounded-full border-2 border-blue-400 shadow-md object-cover transition group-hover:scale-105"
+                  className="w-10 h-10 rounded-full border border-gray-300 object-cover"
                 />
                 <FaAngleDown
-                  className={`ml-1 text-blue-500 dark:text-blue-300 transition-transform duration-200 ${
+                  className={`transition-transform duration-200 ${
                     profileOpen ? 'rotate-180' : ''
                   }`}
                 />
               </button>
 
-              {/* Profile Dropdown */}
+              {/* Dropdown */}
               {profileOpen && (
-                <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-blue-100 dark:border-gray-700 py-3 z-50">
-                  <div className="px-5 pb-2 border-b border-gray-100 dark:border-gray-800 mb-2">
-                    <div className="font-bold text-gray-800 dark:text-gray-100">
-                      {UserData.displayName || 'User'}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {UserData.email}
-                    </div>
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 shadow-lg rounded-lg py-2 z-50">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <div className="font-semibold">{UserData.displayName || 'User'}</div>
+                    <div className="text-sm text-gray-500 truncate">{UserData.email}</div>
                   </div>
                   <NavLink
                     to="/dashboard"
                     onClick={() => setProfileOpen(false)}
-                    className="block px-5 py-2 text-sm rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-800 transition"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Dashboard
                   </NavLink>
                   <button
                     onClick={handleSignOut}
-                    className="block w-full text-left px-5 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg transition"
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                   >
                     Logout
                   </button>
@@ -163,12 +157,12 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Toggle Button */}
+        {/* Mobile Toggle */}
         <button
-          className="md:hidden text-blue-700 dark:text-blue-300 focus:outline-none"
+          className="md:hidden text-gray-700 focus:outline-none"
           onClick={() => setOpen(!open)}
         >
-          {open ? <IoCloseSharp size={30} /> : <IoMdMenu size={30} />}
+          {open ? <IoCloseSharp size={28} /> : <IoMdMenu size={28} />}
         </button>
       </div>
     </nav>

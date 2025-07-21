@@ -1,21 +1,24 @@
-import 
-{ Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import useAuth from '../Hooks/AxiosSeure/useAuth';
 import useUserRole from '../Hooks/useUserRole';
+import WebsiteLoading from '../Loader/WebsiteLoading';
 
 const AdminRoute = ({ children }) => {
-    const { UserData, loading } = useAuth()
-    const { role, roleLoading } = useUserRole()
+  const location = useLocation();
+  const { UserData, loading } = useAuth();
+  const { role, roleLoading } = useUserRole();
 
-    if (loading || roleLoading) {
-        return <span className="loading loading-spinner loading-xl"></span>
-    }
+  // Show loader while auth or role is loading
+  if (loading || roleLoading) {
+    return <WebsiteLoading />;
+  }
 
-    if (!UserData || role !== 'admin') {
-        return <Navigate state={{ from: location.pathname }} to="/forbidden"></Navigate>
-    }
+  // Check for admin role
+  if (!UserData || role !== 'admin') {
+    return <Navigate to="/forbidden" state={{ from: location }} replace />;
+  }
 
-    return children;
+  return children;
 };
 
 export default AdminRoute;

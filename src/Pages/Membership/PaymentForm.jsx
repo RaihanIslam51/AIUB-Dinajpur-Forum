@@ -1,6 +1,6 @@
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 import useAuth from '../../Hooks/AxiosSeure/useAuth';
 import useAxiosSesure from '../../Hooks/AxiosSeure/useAxiosSecure';

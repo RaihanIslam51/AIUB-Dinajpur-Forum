@@ -11,7 +11,7 @@ import {
   FaSortAmountUp,
   FaUser
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import useAxiosSesure from "../../Hooks/AxiosSeure/useAxiosSecure";
 
 const POSTS_PER_PAGE = 5;

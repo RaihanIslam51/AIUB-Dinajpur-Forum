@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import toast from 'react-hot-toast';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router';
 import axiosInstance from '../Hooks/AxiosSeure/asiosInstance';
 import { AuthContext } from './Context/AuthContext';
 

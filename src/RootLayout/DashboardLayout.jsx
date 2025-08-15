@@ -8,7 +8,7 @@ import {
   FaUserCircle,
   FaUsersCog,
 } from 'react-icons/fa';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import useUserRole from '../Hooks/useUserRole';
 
 const DashboardLayout = () => {

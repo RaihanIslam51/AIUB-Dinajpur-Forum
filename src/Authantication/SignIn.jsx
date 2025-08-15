@@ -1,7 +1,7 @@
 import { useContext, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import toast from 'react-hot-toast';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { AuthContext } from './Context/AuthContext';
 
 const SignIn = () => {
@@ -93,13 +93,7 @@ const SignIn = () => {
               placeholder="Enter your password"
               className="w-full mt-1 px-4 py-2 border border-green-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-green-50/60 placeholder-green-400"
             />
-            {/* <button
-              type="button"
-              onClick={handleForgetPassword}
-              className="text-sm text-blue-600 underline mb-1 hover:underline mt-1 float-right"
-            >
-              Forgot password?
-            </button> */}
+        
           </div>
           <button
             type="submit"

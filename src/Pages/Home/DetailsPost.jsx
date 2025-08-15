@@ -12,7 +12,7 @@ import {
   FaThumbsUp,
   FaUser,
 } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 
 import useAuth from "../../Hooks/AxiosSeure/useAuth";
 import useAxiosSesure from "../../Hooks/AxiosSeure/useAxiosSecure";

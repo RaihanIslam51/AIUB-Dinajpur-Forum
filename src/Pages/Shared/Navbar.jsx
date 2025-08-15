@@ -3,7 +3,7 @@ import { CgLogIn } from 'react-icons/cg';
 import { FaAngleDown } from 'react-icons/fa';
 import { IoMdMenu } from 'react-icons/io';
 import { IoCloseSharp } from 'react-icons/io5';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { AuthContext } from '../../Authantication/Context/AuthContext';
 import useAxiosSecure from '../../Hooks/AxiosSeure/useAxiosSecure';
 

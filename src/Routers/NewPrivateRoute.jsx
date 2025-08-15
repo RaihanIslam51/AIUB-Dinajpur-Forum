@@ -16,4 +16,6 @@ const NewPrivateRoute = ({children}) => {
   return children
 }
 
+
+
 export default NewPrivateRoute

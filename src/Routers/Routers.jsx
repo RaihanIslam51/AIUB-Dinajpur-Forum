@@ -3,6 +3,7 @@ import {
 } from "react-router";
 import Register from "../Authantication/Register";
 import SignIn from "../Authantication/SignIn";
+import PageError from "../Pages/404Page/PageError";
 import AdminProfile from "../Pages/Dashboard/AdminDashboard/AdminProfile";
 import MakeAnnouncement from "../Pages/Dashboard/AdminDashboard/MakeAnnouncement";
 import ManageUsers from "../Pages/Dashboard/AdminDashboard/ManageUsers";
@@ -21,9 +22,7 @@ import AuthRoot from "../RootLayout/AuthRoot";
 import DashboardLayout from "../RootLayout/DashboardLayout";
 import RootLayout from "../RootLayout/RootLayout";
 import AdminRoute from "./AdminRoutes";
-import PrivateRoute from "./PrivateRoutes";
 import NewPrivateRoute from "./NewPrivateRoute";
-import PageError from "../Pages/404Page/PageError";
 
 export const router = createBrowserRouter([
   {
@@ -33,7 +32,7 @@ export const router = createBrowserRouter([
       { index: true, path: "/", Component: HomePage },
       {
         path: "/membership",
-        element: <Membership></Membership>
+        element: <NewPrivateRoute> <Membership></Membership></NewPrivateRoute>
 
 
       },
@@ -62,7 +61,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <DashboardLayout></DashboardLayout>,
+    element: <NewPrivateRoute>  <DashboardLayout></DashboardLayout></NewPrivateRoute>,
     children: [
       { path: "/dashboard/MyProfile", Component: MyProfile },
       { path: "/dashboard/AddPost", Component: AddPost },

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { FaComments, FaTrash } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 import useAuth from '../../../Hooks/AxiosSeure/useAuth';
 import useAxiosSesure from '../../../Hooks/AxiosSeure/useAxiosSecure';

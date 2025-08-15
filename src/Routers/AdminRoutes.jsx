@@ -5,11 +5,11 @@ import WebsiteLoading from '../Loader/WebsiteLoading';
 
 const AdminRoute = ({ children }) => {
   const location = useLocation();
-  const { UserData, loading } = useAuth();
+  const { UserData, Loading } = useAuth();
   const { role, roleLoading } = useUserRole();
 
   // Show loader while auth or role is loading
-  if (loading || roleLoading) {
+  if (Loading || roleLoading) {
     return <WebsiteLoading />;
   }
 

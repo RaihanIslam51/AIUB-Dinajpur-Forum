@@ -1,66 +1,58 @@
-import axios from "axios";
-import { BadgeCheck, Upload } from "lucide-react";
+import { Skeleton } from "@mui/material";
+import { Award, ChevronRight, Clock, Edit, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import useAuth from "../../../Hooks/AxiosSeure/useAuth";
 import useAxiosSesure from "../../../Hooks/AxiosSeure/useAxiosSecure";
 
 const MyProfile = () => {
   const { UserData } = useAuth();
   const axiosSecure = useAxiosSesure();
-
-  const [profilePic, setProfilePic] = useState(UserData?.image || "");
+  const navigate = useNavigate();
+ console.log("datat",UserData);
+ 
+  const [profilePic, setProfilePic] = useState(UserData?.photoURL || "");
   const [badge, setBadge] = useState("bronze");
   const [dbUser, setDbUser] = useState({});
   const [postCount, setPostCount] = useState(0);
   const [posts, setPosts] = useState([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllPosts, setShowAllPosts] = useState(false);
 
-  // Fetch user info and post count
   useEffect(() => {
-    const fetchUserAndPostsCount = async () => {
+    const fetchUserData = async () => {
       if (UserData?.email) {
         try {
-          const userRes = await axiosSecure.get(`/users?email=${UserData.email}`);
+          setLoading(true);
+          const [userRes, postRes] = await Promise.all([
+            axiosSecure.get(`/users?email=${UserData.email}`),
+            axiosSecure.get(`/posts/counts?email=${UserData.email}`)
+          ]);
+          
           const user = Array.isArray(userRes.data) ? userRes.data[0] : userRes.data;
           setDbUser(user || {});
           setProfilePic(user?.image || UserData?.image || "");
           setBadge(user?.payment_status?.toLowerCase().includes("gold") ? "gold" : "bronze");
-
-          const postRes = await axiosSecure.get(`/posts/counts?email=${UserData.email}`);
           setPostCount(postRes.data.count || 0);
+
+          const postsRes = await axiosSecure.get(`/mypost?email=${UserData.email}`);
+          setPosts(postsRes.data.sort((a, b) => new Date(b.date) - new Date(a.date)));
         } catch (err) {
           console.error("Fetch failed:", err);
+          setError("Failed to load profile data");
+        } finally {
+          setLoading(false);
         }
       }
     };
-    fetchUserAndPostsCount();
+    fetchUserData();
   }, [UserData, axiosSecure]);
-
-  console.log("dbuser",dbUser);
-  
-
-  // ✅ Fetch only this user's posts
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!UserData?.email) return;
-
-      try {
-        const res = await axiosSecure.get(`/mypost?email=${UserData.email}`);
-        const sorted = res.data.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setPosts(sorted);
-        setLoadingPosts(false);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-        setError("Error fetching posts");
-        setLoadingPosts(false);
-      }
-    };
-    fetchPosts();
-  }, [UserData?.email, axiosSecure]);
 
   const handleUploadImg = async (e) => {
     const image = e.target.files[0];
+    if (!image) return;
+
     const formData = new FormData();
     formData.append("image", image);
     try {
@@ -69,142 +61,191 @@ const MyProfile = () => {
         formData
       );
       setProfilePic(res.data.data.url);
+      // TODO: Update profile picture in backend
     } catch (error) {
       console.error("Image upload failed", error);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-100 via-white to-indigo-100 py-16 px-6 sm:px-12">
-      <div className="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl p-12 space-y-14">
-        {/* PROFILE HEADER */}
-        <div className="flex flex-col md:flex-row items-center gap-10">
-          <div className="relative group w-40 h-40 rounded-full overflow-hidden ring-8 ring-indigo-300 hover:ring-indigo-500 transition-all duration-300 shadow-2xl cursor-pointer">
-            <img
-              src={profilePic || dbUser?.photo || "https://i.ibb.co/vz7M9f3/default-avatar.png"}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-            <label
-              htmlFor="upload"
-              className="absolute bottom-3 right-3 bg-indigo-600 p-3 rounded-full text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-indigo-700"
-              title="Change Profile Picture"
-            >
-              <Upload size={24} />
-            </label>
-            <input
-              id="upload"
-              type="file"
-              accept="image/*"
-              onChange={handleUploadImg}
-              className="hidden"
-            />
+  const handleViewAllPosts = () => {
+    navigate('/dashboard/MyPosts');
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto p-8">
+        <div className="bg-white rounded-2xl shadow-md p-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            <Skeleton variant="circular" width={160} height={160} />
+            <div className="flex-1 space-y-4">
+              <Skeleton variant="text" width="60%" height={50} />
+              <Skeleton variant="text" width="40%" height={30} />
+              <div className="flex flex-wrap gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} variant="rectangular" width={120} height={80} />
+                ))}
+              </div>
+            </div>
           </div>
-
-          <div className="flex-1 space-y-4">
-            <h1 className="flex items-center gap-4 text-5xl font-extrabold text-indigo-900 tracking-wide">
-              {dbUser?.name || UserData?.name}
-              <BadgeCheck
-                className={`h-9 w-9 transition-transform ${
-                  badge === "gold" ? "text-yellow-400 drop-shadow-lg" : "text-gray-400"
-                }`}
-                title={badge.charAt(0).toUpperCase() + badge.slice(1) + " Badge"}
-              />
-            </h1>
-
-            <p className="text-indigo-600 font-semibold tracking-wide text-xl select-text">
-              {dbUser?.email}
-            </p>
-
-            <div className="flex flex-wrap gap-8 mt-6 text-gray-700 text-lg font-semibold">
-              {[
-                {
-                  label: "Total Posts",
-                  value: postCount,
-                  bg: "bg-indigo-100",
-                  text: "text-indigo-700",
-                },
-                {
-                  label: "Role",
-                  value: dbUser?.role || "User",
-                  bg: "bg-indigo-100",
-                  text: "text-indigo-700",
-                },
-                {
-                  label: "Membership",
-                  value: badge.charAt(0).toUpperCase() + badge.slice(1) + " Badge",
-                  bg:
-                    badge === "gold"
-                      ? "bg-yellow-300 text-yellow-900 shadow-lg"
-                      : "bg-gray-300 text-gray-700",
-                  text: "",
-                },
-                {
-                  label: "Joined",
-                  value: dbUser?.created_at
-                    ? new Date(dbUser.created_at).toLocaleDateString()
-                    : "N/A",
-                  bg: "bg-indigo-100",
-                  text: "text-indigo-700",
-                },
-              ].map(({ label, value, bg, text }, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col items-center rounded-xl p-6 shadow-inner w-36 ${bg} ${text}`}
-                >
-                  <span
-                    className={`text-2xl font-extrabold ${
-                      badge === "gold" && label === "Membership" ? "text-yellow-900" : text
-                    }`}
-                  >
-                    {value}
-                  </span>
-                  <span className="mt-1 text-sm uppercase tracking-wide text-gray-600 select-none">
-                    {label}
-                  </span>
-                </div>
+          <div className="mt-12">
+            <Skeleton variant="text" width="30%" height={40} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} variant="rectangular" height={200} />
               ))}
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* POSTS SECTION */}
-        <section>
-          <h3 className="text-4xl font-extrabold text-indigo-900 mb-10 tracking-wide text-center md:text-left">
-            Recent Posts
-          </h3>
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto p-8">
+        <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+          <div className="text-red-500 text-xl font-medium mb-4">{error}</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-          {loadingPosts ? (
-            <p className="text-center text-indigo-500 text-lg animate-pulse">Loading posts...</p>
-          ) : error ? (
-            <p className="text-center text-red-600 font-semibold">{error}</p>
-          ) : posts.length === 0 ? (
-            <p className="text-center text-gray-500 italic">No posts available.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-              {posts.map((post) => (
-                <article
-                  key={post._id || post.id}
-                  className="bg-white rounded-3xl shadow-2xl p-8 hover:shadow-indigo-600/50 transition-shadow transform hover:-translate-y-1 cursor-pointer group"
-                  onClick={() => alert(`Clicked on post: ${post.title}`)}
-                >
-                  <h4 className="text-2xl font-bold text-indigo-900 mb-3 line-clamp-2 group-hover:text-indigo-700 transition-colors">
-                    {post.title}
-                  </h4>
-                  <p className="text-gray-700 text-base line-clamp-5 mb-6 select-text">
-                    {post.description || post.content || "No description available."}
-                  </p>
-                  <button
-                    className="text-indigo-600 font-semibold hover:text-indigo-800 focus:outline-none"
-                    aria-label={`Read more about ${post.title}`}
-                  >
-                    Read More →
-                  </button>
-                </article>
+  return (
+    <div className="max-w-7xl mx-auto p-4 sm:p-8">
+      {/* Profile Card */}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        {/* Profile Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="relative group">
+              <img
+                src={profilePic || "https://i.ibb.co/vz7M9f3/default-avatar.png"}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-white/80 shadow-lg"
+              />
+              <label
+                htmlFor="upload"
+                className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md cursor-pointer hover:bg-gray-100 transition"
+                title="Change Profile Picture"
+              >
+                <Edit className="text-indigo-600 w-5 h-5" />
+              </label>
+              <input
+                id="upload"
+                type="file"
+                accept="image/*"
+                onChange={handleUploadImg}
+                className="hidden"
+              />
+            </div>
+
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl font-bold flex items-center justify-center md:justify-start gap-3">
+                {dbUser?.name || UserData?.name}
+                {badge === "gold" && (
+                  <Award className="text-yellow-400 w-6 h-6" />
+                )}
+              </h1>
+              <p className="text-indigo-100 mt-1">{dbUser?.email || UserData?.email}</p>
+              <p className="text-indigo-200 mt-3 flex items-center justify-center md:justify-start gap-2">
+                <Clock className="w-4 h-4" />
+                Joined {dbUser?.created_at ? new Date(dbUser.created_at).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-indigo-50 p-4 rounded-lg text-center">
+            <div className="text-indigo-600 font-bold text-2xl">{postCount}</div>
+            <div className="text-gray-600 text-sm">Total Posts</div>
+          </div>
+          
+          <div className="bg-indigo-50 p-4 rounded-lg text-center">
+            <div className="text-indigo-600 font-bold text-2xl capitalize">{dbUser?.role || "User"}</div>
+            <div className="text-gray-600 text-sm">Account Role</div>
+          </div>
+          
+          <div className={`p-4 rounded-lg text-center ${
+            badge === "gold" ? "bg-yellow-50" : "bg-gray-50"
+          }`}>
+            <div className={`font-bold text-2xl capitalize ${
+              badge === "gold" ? "text-yellow-600" : "text-gray-600"
+            }`}>
+              {badge}
+            </div>
+            <div className="text-gray-600 text-sm">Membership</div>
+          </div>
+          
+          <div className="bg-indigo-50 p-4 rounded-lg text-center">
+            <div className="text-indigo-600 font-bold text-2xl">0</div>
+            <div className="text-gray-600 text-sm">Comments</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Posts Section */}
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+          <FileText className="text-indigo-600" />
+          Recent Posts
+        </h2>
+
+        {posts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            You haven't created any posts yet.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(showAllPosts ? posts : posts.slice(0, 6)).map((post) => (
+                <div key={post._id} className="border border-gray-200 rounded-xl hover:shadow-md transition">
+                  <div className="p-5">
+                    <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
+                    <p className="text-gray-600 text-sm line-clamp-3 mb-4">{post.description || post.content}</p>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                      <button className="text-indigo-600 hover:text-indigo-800 font-medium">
+                        View →
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-        </section>
+            
+            {posts.length > 6 && !showAllPosts && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowAllPosts(true)}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 mx-auto"
+                >
+                  See All My Posts
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {showAllPosts && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={handleViewAllPosts}
+                  className="px-6 py-2 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition flex items-center gap-2 mx-auto"
+                >
+                  View in Posts Manager
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

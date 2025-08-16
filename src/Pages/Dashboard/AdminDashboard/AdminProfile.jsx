@@ -1,12 +1,16 @@
+import { format } from 'date-fns';
 import { useEffect, useState } from "react";
 import {
   FaCalendarAlt,
+  FaChartPie,
   FaCommentAlt,
+  FaEdit,
   FaEnvelope,
   FaPenFancy,
+  FaPlus,
   FaTags,
   FaUserShield,
-  FaUsers,
+  FaUsers
 } from "react-icons/fa";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import Swal from "sweetalert2";
@@ -25,9 +29,9 @@ const AdminProfile = () => {
   const [counts, setCounts] = useState({ users: 0, posts: 0, comments: 0 });
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [editedName, setEditedName] = useState("");
 
-  
-  
   useEffect(() => {
     if (!UserData?.email) return;
 
@@ -36,8 +40,14 @@ const AdminProfile = () => {
       try {
         const res = await axiosSecure.get(`/users/${UserData.email}/role`);
         setAdminData(res.data);
+        setEditedName(res.data.name);
       } catch (error) {
-        Swal.fire("Error", "Failed to load admin profile", "error");
+        Swal.fire({
+          title: "Error",
+          text: "Failed to load admin profile",
+          icon: "error",
+          confirmButtonColor: "#6366f1"
+        });
         setAdminData(null);
       } finally {
         setLoading(false);
@@ -81,38 +91,129 @@ const AdminProfile = () => {
   const handleAddTag = async (e) => {
     e.preventDefault();
     if (!newTag.trim()) {
-      Swal.fire("Warning", "Please enter a tag name", "warning");
+      Swal.fire({
+        title: "Warning",
+        text: "Please enter a tag name",
+        icon: "warning",
+        confirmButtonColor: "#6366f1"
+      });
       return;
     }
     try {
-      const tagToSend = { name: newTag.trim(), value: newTag.trim() };
+      const tagToSend = { name: newTag.trim(), value: newTag.trim().toLowerCase() };
       const response = await axiosSecure.post("/tags", tagToSend);
       if (response.status === 201) {
-        Swal.fire("Success", "Tag added successfully", "success");
+        Swal.fire({
+          title: "Success",
+          text: "Tag added successfully",
+          icon: "success",
+          confirmButtonColor: "#6366f1"
+        });
         setNewTag("");
         const res = await axiosSecure.get("/tags");
         setTags(res.data);
       } else {
-        Swal.fire("Error", "Failed to add tag", "error");
+        Swal.fire({
+          title: "Error",
+          text: "Failed to add tag",
+          icon: "error",
+          confirmButtonColor: "#6366f1"
+        });
       }
     } catch (error) {
       console.error("Error posting tag:", error.response || error.message);
-      Swal.fire("Error", "Failed to add tag", "error");
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Failed to add tag",
+        icon: "error",
+        confirmButtonColor: "#6366f1"
+      });
+    }
+  };
+
+  const handleDeleteTag = async (tagId) => {
+    const result = await Swal.fire({
+      title: "Delete Tag?",
+      text: "This will remove the tag from the system",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6366f1",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axiosSecure.delete(`/tags/${tagId}`);
+        setTags(tags.filter(tag => tag._id !== tagId));
+        Swal.fire({
+          title: "Deleted!",
+          text: "Tag has been removed",
+          icon: "success",
+          confirmButtonColor: "#6366f1"
+        });
+      } catch (error) {
+        Swal.fire({
+          title: "Error",
+          text: "Failed to delete tag",
+          icon: "error",
+          confirmButtonColor: "#6366f1"
+        });
+      }
+    }
+  };
+
+  const handleUpdateName = async () => {
+    try {
+      const response = await axiosSecure.patch(`/users/${UserData.email}`, {
+        name: editedName
+      });
+      if (response.data.modifiedCount > 0) {
+        setAdminData({ ...adminData, name: editedName });
+        Swal.fire({
+          title: "Success!",
+          text: "Name updated successfully",
+          icon: "success",
+          confirmButtonColor: "#6366f1"
+        });
+      }
+      setEditMode(false);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "Failed to update name",
+        icon: "error",
+        confirmButtonColor: "#6366f1"
+      });
     }
   };
 
   if (loading || countLoading) {
     return (
-      <div className="flex justify-center items-center h-60">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-600 border-solid"></div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mb-4"></div>
+          <p className="text-indigo-600 font-medium text-lg">Loading admin dashboard...</p>
+        </div>
       </div>
     );
   }
 
   if (!adminData) {
     return (
-      <div className="text-center text-red-600 font-semibold mt-12 select-none">
-        No admin profile found.
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Admin Profile Not Found</h2>
+          <p className="text-gray-600 mb-6">We couldn't load your admin profile. Please try again later.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Refresh Page
+          </button>
+        </div>
       </div>
     );
   }
@@ -122,172 +223,211 @@ const AdminProfile = () => {
     role = "admin",
     name = "Admin User",
     photo = "https://i.ibb.co/2Fc7Wp8/avatar.png",
-    created_at = "Unknown",
+    created_at = new Date()
   } = adminData;
 
   const pieData = [
-    { name: "Users", value: counts.users },
-    { name: "Posts", value: counts.posts },
-    { name: "Comments", value: counts.comments },
+    { name: "Users", value: counts.users, icon: <FaUsers className="inline mr-1" /> },
+    { name: "Posts", value: counts.posts, icon: <FaPenFancy className="inline mr-1" /> },
+    { name: "Comments", value: counts.comments, icon: <FaCommentAlt className="inline mr-1" /> }
   ];
 
   return (
-    <section className="max-w-7xl mx-auto mt-20 px-6 sm:px-10">
-      <div className="bg-white dark:bg-gray-900 shadow-3xl rounded-3xl p-10 sm:p-14">
-        {/* Profile Info */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-12 text-center md:text-left">
-          <div className="relative group">
-            <img
-              src={photo}
-              alt="Admin Avatar"
-              className="w-40 h-40 rounded-full border-8 border-indigo-600 object-cover shadow-xl transition-transform duration-500 group-hover:scale-110"
-            />
-            <div className="absolute -bottom-3 -right-3 bg-indigo-700 rounded-full p-4 shadow-lg animate-pulse">
-              <FaUserShield className="text-white text-2xl" title="Admin Role" />
-            </div>
+    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <div className="text-sm text-gray-500">
+            Last updated: {format(new Date(), 'MMMM d, yyyy h:mm a')}
           </div>
+        </div>
 
-          <div className="flex-1 space-y-5">
-            <h2 className="text-4xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-wide drop-shadow-lg">
-              {name}
-            </h2>
+        {/* Profile Section */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+          <div className="p-6 sm:p-8 md:flex items-start gap-8">
+            <div className="relative mb-6 md:mb-0">
+              <img
+                src={photo}
+                alt="Admin Avatar"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-indigo-500 object-cover shadow-lg"
+              />
+              <div className="absolute -bottom-2 -right-2 bg-indigo-600 rounded-full p-3 shadow-md">
+                <FaUserShield className="text-white text-xl" />
+              </div>
+            </div>
 
-            <p className="flex items-center justify-center md:justify-start gap-3 text-gray-700 dark:text-gray-300 text-lg font-semibold tracking-wide">
-              <FaEnvelope className="text-indigo-500" size={22} />
-              {email}
-            </p>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-4">
+                {editMode ? (
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="text-2xl font-bold text-gray-900 border-b-2 border-indigo-500 px-2 py-1 focus:outline-none"
+                    />
+                    <button
+                      onClick={handleUpdateName}
+                      className="text-green-600 hover:text-green-800"
+                      title="Save"
+                    >
+                      <FaEdit size={18} />
+                    </button>
+                    <button
+                      onClick={() => setEditMode(false)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Cancel"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-gray-900">{name}</h2>
+                    <button
+                      onClick={() => setEditMode(true)}
+                      className="text-indigo-600 hover:text-indigo-800"
+                      title="Edit name"
+                    >
+                      <FaEdit size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            <span className="inline-flex items-center gap-3 bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 px-6 py-3 rounded-full font-semibold text-lg shadow-inner tracking-wide select-none">
-              <FaUserShield size={20} /> Role: <span className="capitalize">{role}</span>
-            </span>
+              <div className="space-y-3">
+                <p className="flex items-center text-gray-700">
+                  <FaEnvelope className="text-indigo-500 mr-2" size={16} />
+                  <span className="font-medium">{email}</span>
+                </p>
 
-            <div className="flex items-center gap-3 text-lg font-semibold text-gray-700 dark:text-gray-400 tracking-wide">
-              <FaCalendarAlt className="text-indigo-500" size={22} />
-              Joined on:{" "}
-              <span className="text-indigo-600 dark:text-indigo-300 ml-2 font-medium">
-                {created_at}
-              </span>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium">
+                    <FaUserShield className="mr-1" /> {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </span>
+
+                  <span className="flex items-center text-gray-700 text-sm">
+                    <FaCalendarAlt className="text-indigo-500 mr-2" size={14} />
+                    Joined: {format(new Date(created_at), 'MMMM d, yyyy')}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Counts Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-16 text-center">
-          {[
-            {
-              icon: FaUsers,
-              label: "Total Users",
-              count: counts.users,
-              color: "text-indigo-700",
-              bgColor: "bg-indigo-100 dark:bg-indigo-800",
-            },
-            {
-              icon: FaPenFancy,
-              label: "Total Posts",
-              count: counts.posts,
-              color: "text-green-600",
-              bgColor: "bg-green-100 dark:bg-green-900",
-            },
-            {
-              icon: FaCommentAlt,
-              label: "Total Comments",
-              count: counts.comments,
-              color: "text-yellow-500",
-              bgColor: "bg-yellow-100 dark:bg-yellow-900",
-            },
-          ].map(({ icon: Icon, label, count, color, bgColor }, idx) => (
-            <div
-              key={idx}
-              className={`${bgColor} p-8 rounded-3xl shadow-lg flex flex-col items-center space-y-4 transform transition-transform hover:scale-105`}
-            >
-              <Icon className={`${color} text-5xl drop-shadow-lg`} />
-              <p className={`text-3xl font-extrabold ${color}`}>{count}</p>
-              <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">{label}</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {pieData.map(({ name, value, icon }, index) => (
+            <div key={name} className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">{name}</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{value.toLocaleString()}</p>
+                  </div>
+                  <div className={`p-3 rounded-lg ${COLORS[index].replace(/[^0-9]/g, '') < 500 ? 'bg-opacity-10' : 'bg-opacity-20'} bg-[${COLORS[index]}]`}>
+                    {icon}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Pie Chart */}
-        <div className="mt-20 max-w-lg mx-auto">
-          <h3 className="text-2xl font-bold mb-6 text-center text-indigo-700 dark:text-indigo-300 tracking-wide">
-            Site Overview
-          </h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={110}
-                fill="#8884d8"
-                label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
-                labelLine={false}
-                animationDuration={800}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                    stroke="#ffffff"
-                    strokeWidth={2}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#4c51bf",
-                  borderRadius: "10px",
-                  border: "none",
-                  color: "#fff",
-                  fontWeight: "600",
-                }}
-                formatter={(value, name) => [`${value}`, name]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Tags Section */}
-        <div className="mt-20 max-w-xl mx-auto">
-          <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-indigo-700 dark:text-indigo-300 tracking-wide">
-            <FaTags className="text-indigo-500" size={26} /> Manage Tags
-          </h3>
-          <form
-            onSubmit={handleAddTag}
-            className="flex gap-4 items-center bg-indigo-50 dark:bg-indigo-900 p-6 rounded-3xl shadow-lg"
-          >
-            <input
-              type="text"
-              placeholder="Enter new tag"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              className="flex-1 px-5 py-3 rounded-xl border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg font-semibold placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-            />
-            <button
-              type="submit"
-              className="bg-indigo-700 hover:bg-indigo-800 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-xl transition-transform transform hover:scale-105"
-            >
-              Add Tag
-            </button>
-          </form>
-
-          {tags.length > 0 && (
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {tags.map((tag) => (
-                <span
-                  key={tag._id}
-                  className="bg-indigo-100 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-300 px-4 py-2 rounded-2xl text-base font-semibold text-center select-none shadow-inner"
-                >
-                  #{tag.name}
-                </span>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Pie Chart */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                <FaChartPie className="text-indigo-500 mr-2" /> Content Distribution
+              </h3>
             </div>
-          )}
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value, name) => [`${value}`, name]}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      padding: '0.5rem 1rem'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Tags Management */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                <FaTags className="text-indigo-500 mr-2" /> Manage Tags
+              </h3>
+              <span className="text-sm text-gray-500">{tags.length} tags</span>
+            </div>
+
+            <form onSubmit={handleAddTag} className="mb-6">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="New tag name"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                >
+                  <FaPlus className="mr-1" /> Add
+                </button>
+              </div>
+            </form>
+
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <div
+                    key={tag._id}
+                    className="flex items-center bg-gray-100 rounded-full px-3 py-1"
+                  >
+                    <span className="text-gray-800">#{tag.name}</span>
+                    <button
+                      onClick={() => handleDeleteTag(tag._id)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No tags yet. Add your first tag!</p>
+            )}
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

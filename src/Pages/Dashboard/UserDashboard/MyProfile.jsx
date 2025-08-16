@@ -9,7 +9,7 @@ const MyProfile = () => {
   const { UserData } = useAuth();
   const axiosSecure = useAxiosSesure();
   const navigate = useNavigate();
- console.log("datat",UserData);
+
  
   const [profilePic, setProfilePic] = useState(UserData?.photoURL || "");
   const [badge, setBadge] = useState("bronze");
@@ -19,6 +19,9 @@ const MyProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAllPosts, setShowAllPosts] = useState(false);
+
+  console.log(profilePic);
+  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -125,7 +128,7 @@ const MyProfile = () => {
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative group">
               <img
-                src={profilePic || "https://i.ibb.co/vz7M9f3/default-avatar.png"}
+                src={UserData?.photoURL}
                 alt="Profile"
                 className="w-32 h-32 rounded-full object-cover border-4 border-white/80 shadow-lg"
               />

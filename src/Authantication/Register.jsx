@@ -3,7 +3,7 @@ import { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import toast from 'react-hot-toast';
 import { FaEnvelope, FaEye, FaEyeSlash, FaGoogle, FaImage, FaLock, FaUser } from 'react-icons/fa';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../Hooks/AxiosSeure/asiosInstance';
 import { AuthContext } from './Context/AuthContext';
 
@@ -15,7 +15,7 @@ const Register = () => {
   const location = useLocation();
   const from = location.state?.from || '/';
 
-  const { createUser, GoogleLogin, setUserData, updateUser } = useContext(AuthContext);
+  const { createUser, GoogleLogin, setUserData, updateUser, darkMode } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,7 +97,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Helmet>
         <title>Register | Your App Name</title>
         <meta name="description" content="Create your account to get started" />
@@ -107,12 +107,12 @@ const Register = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+        className={`w-full max-w-md rounded-2xl shadow-xl overflow-hidden transition-colors duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
       >
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-6 text-center">
-          <h2 className="text-2xl font-bold text-white">Create Your Account</h2>
-          <p className="text-emerald-100 mt-1">Join our community today</p>
+        <div className={`bg-gradient-to-r p-6 text-center ${darkMode ? 'from-gray-700 to-gray-600' : 'from-indigo-600 to-indigo-500'}`}>
+          <h2 className={`text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-white'}`}>Create Your Account</h2>
+          <p className={darkMode ? 'text-gray-300 mt-1' : 'text-indigo-100 mt-1'}>Join our community today</p>
         </div>
 
         {/* Form Section */}
@@ -120,12 +120,12 @@ const Register = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Field */}
             <div className="space-y-1">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Full Name
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaUser className="text-gray-400" />
+                  <FaUser className={darkMode ? 'text-gray-400' : 'text-gray-400'} />
                 </div>
                 <input
                   id="name"
@@ -133,38 +133,46 @@ const Register = () => {
                   type="text"
                   required
                   placeholder="John Doe"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`block w-full pl-10 pr-3 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-colors duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-emerald-400 focus:border-emerald-400' 
+                      : 'border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                  }`}
                 />
               </div>
             </div>
 
             {/* Photo URL Field */}
             <div className="space-y-1">
-              <label htmlFor="photo" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="photo" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Photo URL (Optional)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaImage className="text-gray-400" />
+                  <FaImage className={darkMode ? 'text-gray-400' : 'text-gray-400'} />
                 </div>
                 <input
                   id="photo"
                   name="photo"
                   type="url"
                   placeholder="https://example.com/photo.jpg"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`block w-full pl-10 pr-3 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-colors duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-emerald-400 focus:border-emerald-400' 
+                      : 'border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                  }`}
                 />
               </div>
             </div>
 
             {/* Email Field */}
             <div className="space-y-1">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaEnvelope className="text-gray-400" />
+                  <FaEnvelope className={darkMode ? 'text-gray-400' : 'text-gray-400'} />
                 </div>
                 <input
                   id="email"
@@ -172,19 +180,23 @@ const Register = () => {
                   type="email"
                   required
                   placeholder="you@example.com"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`block w-full pl-10 pr-3 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-colors duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-emerald-400 focus:border-emerald-400' 
+                      : 'border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                  }`}
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div className="space-y-1">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaLock className="text-gray-400" />
+                  <FaLock className={darkMode ? 'text-gray-400' : 'text-gray-400'} />
                 </div>
                 <input
                   id="password"
@@ -192,23 +204,27 @@ const Register = () => {
                   type={passwordShow ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className={`block w-full pl-10 pr-10 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-colors duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-emerald-400 focus:border-emerald-400' 
+                      : 'border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                  }`}
                 />
                 <button
                   type="button"
                   onClick={() => setPasswordShow(!passwordShow)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  className={`absolute inset-y-0 right-0 pr-3 flex items-center ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   {passwordShow ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Must contain uppercase, lowercase, number, and 6+ characters
               </p>
             </div>
 
             {errorMessage && (
-              <div className="text-red-600 text-sm p-2 bg-red-50 rounded-lg">
+              <div className={`text-sm p-2 rounded-lg ${darkMode ? 'text-red-400 bg-red-900/50' : 'text-red-600 bg-red-50'}`}>
                 {errorMessage}
               </div>
             )}
@@ -216,8 +232,14 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${
-                isLoading ? 'opacity-70 cursor-not-allowed' : ''
+              className={`w-full flex justify-center items-center py-2 px-4 rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-300 ${
+                isLoading 
+                  ? 'opacity-70 cursor-not-allowed' 
+                  : ''
+              } ${
+                darkMode 
+                  ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-400' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-emerald-500'
               }`}
             >
               {isLoading ? (
@@ -237,10 +259,10 @@ const Register = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className={`w-full border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className={`px-2 ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>Or continue with</span>
               </div>
             </div>
 
@@ -248,19 +270,23 @@ const Register = () => {
               <button
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full inline-flex justify-center items-center py-2 px-4 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                className={`w-full inline-flex justify-center items-center py-2 px-4 rounded-lg shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-300 ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600 focus:ring-emerald-400' 
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 focus:ring-emerald-500'
+                }`}
               >
-                <FaGoogle className="text-red-500 mr-2" />
+                <FaGoogle className={`${darkMode ? 'text-red-400' : 'text-red-500'} mr-2`} />
                 Sign up with Google
               </button>
             </div>
           </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className={`mt-6 text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Already have an account?{' '}
             <Link 
               to="/auth/login" 
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className={`font-medium ${darkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-indigo-600 hover:text-indigo-500'}`}
             >
               Sign in
             </Link>

@@ -1,6 +1,6 @@
 import { Skeleton } from "@mui/material";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -11,7 +11,8 @@ import {
   FaSortAmountDown,
   FaThumbsUp
 } from "react-icons/fa";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../Authantication/Context/AuthContext";
 import useAxiosSesure from "../../Hooks/AxiosSeure/useAxiosSecure";
 
 const POSTS_PER_PAGE = 6;
@@ -24,6 +25,7 @@ const AllPosts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { darkMode } = useContext(AuthContext);
 
   const fetchPosts = async () => {
     try {
@@ -71,27 +73,27 @@ const AllPosts = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-12 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-          <Skeleton variant="text" width={300} height={50} />
+          <Skeleton variant="text" width={300} height={50} className={darkMode ? 'bg-gray-700' : ''} />
           <div className="flex gap-4">
-            <Skeleton variant="rounded" width={150} height={50} />
-            <Skeleton variant="rounded" width={150} height={50} />
+            <Skeleton variant="rounded" width={150} height={50} className={darkMode ? 'bg-gray-700' : ''} />
+            <Skeleton variant="rounded" width={150} height={50} className={darkMode ? 'bg-gray-700' : ''} />
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(6)].map((_, index) => (
-            <div key={index} className="rounded-2xl overflow-hidden shadow-md">
-              <Skeleton variant="rectangular" width="100%" height={200} />
+            <div key={index} className={`rounded-2xl overflow-hidden shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <Skeleton variant="rectangular" width="100%" height={200} className={darkMode ? 'bg-gray-700' : ''} />
               <div className="p-6">
-                <Skeleton variant="text" width="80%" height={30} />
-                <Skeleton variant="text" width="100%" height={20} />
-                <Skeleton variant="text" width="100%" height={20} />
-                <Skeleton variant="text" width="60%" height={20} />
+                <Skeleton variant="text" width="80%" height={30} className={darkMode ? 'bg-gray-700' : ''} />
+                <Skeleton variant="text" width="100%" height={20} className={darkMode ? 'bg-gray-700' : ''} />
+                <Skeleton variant="text" width="100%" height={20} className={darkMode ? 'bg-gray-700' : ''} />
+                <Skeleton variant="text" width="60%" height={20} className={darkMode ? 'bg-gray-700' : ''} />
                 <div className="flex justify-between mt-4">
-                  <Skeleton variant="circular" width={40} height={40} />
-                  <Skeleton variant="rounded" width={100} height={40} />
+                  <Skeleton variant="circular" width={40} height={40} className={darkMode ? 'bg-gray-700' : ''} />
+                  <Skeleton variant="rounded" width={100} height={40} className={darkMode ? 'bg-gray-700' : ''} />
                 </div>
               </div>
             </div>
@@ -103,8 +105,8 @@ const AllPosts = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 text-center">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-12 text-center ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`border-l-4 p-4 mb-8 ${darkMode ? 'bg-red-900/20 border-red-500' : 'bg-red-50 border-red-500'}`}>
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -112,7 +114,7 @@ const AllPosts = () => {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-lg font-medium text-red-700">{error}</p>
+              <p className={`text-lg font-medium ${darkMode ? 'text-red-300' : 'text-red-700'}`}>{error}</p>
               <button 
                 onClick={fetchPosts}
                 className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -127,14 +129,14 @@ const AllPosts = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-12 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/* Header with sorting options */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
         <div>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          <h2 className={`text-3xl md:text-4xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Community Discussions
           </h2>
-          <p className="text-gray-600">
+          <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
             {posts.length} posts shared by our community members
           </p>
         </div>
@@ -146,7 +148,9 @@ const AllPosts = () => {
             className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
               !sortedByPopularity
                 ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                : darkMode 
+                  ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             <FaSortAmountDown className="text-lg" /> 
@@ -158,7 +162,9 @@ const AllPosts = () => {
             className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
               sortedByPopularity
                 ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                : darkMode 
+                  ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             <FaFireAlt className="text-lg" />
@@ -182,18 +188,26 @@ const AllPosts = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                   whileHover={{ y: -5 }}
-                  className="flex flex-col bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
+                  className={`flex flex-col rounded-2xl shadow-md overflow-hidden border ${
+                    darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                  } hover:shadow-lg transition-shadow`}
                 >
                   {/* Post Header */}
-                  <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className={`p-4 border-b flex items-center gap-3 ${
+                    darkMode ? 'border-gray-700' : 'border-gray-100'
+                  }`}>
                     <img
                       src={post.authorImage || "https://i.ibb.co/4Y8xJyM/default-avatar.jpg"}
                       alt={post.authorName}
                       className="w-10 h-10 rounded-full object-cover border-2 border-white shadow"
                     />
                     <div>
-                      <h4 className="font-medium text-gray-900">{post.authorName}</h4>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <h4 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {post.authorName}
+                      </h4>
+                      <div className={`flex items-center gap-1 text-xs ${
+                        darkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
                         <FaRegClock className="text-xs" />
                         <time dateTime={post.date}>
                           {new Date(post.date).toLocaleDateString("en-US", {
@@ -204,37 +218,53 @@ const AllPosts = () => {
                         </time>
                       </div>
                     </div>
-                    <div className="ml-auto bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                    <div className={`ml-auto px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                      darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-50 text-blue-600'
+                    }`}>
                       <FaHashtag /> {post.tag}
                     </div>
                   </div>
 
                   {/* Post Content */}
                   <div className="p-6 flex-grow">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
+                    <h3 className={`text-xl font-bold mb-3 line-clamp-2 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                       {post.title}
                     </h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
+                    <p className={`mb-4 line-clamp-3 ${
+                      darkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
                       {post.description}
                     </p>
                   </div>
 
                   {/* Post Footer */}
-                  <div className="px-6 pb-4 pt-2 border-t border-gray-100">
+                  <div className={`px-6 pb-4 pt-2 border-t ${
+                    darkMode ? 'border-gray-700' : 'border-gray-100'
+                  }`}>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1 text-gray-600">
+                        <div className={`flex items-center gap-1 text-sm font-medium ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}>
                           <FaThumbsUp className="text-blue-500" />
-                          <span className="text-sm font-medium">{votes}</span>
+                          <span>{votes}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-gray-600">
+                        <div className={`flex items-center gap-1 text-sm font-medium ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}>
                           <FaCommentAlt className="text-green-500" />
-                          <span className="text-sm font-medium">{commentCount}</span>
+                          <span>{commentCount}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => handleDetails(post._id)}
-                        className="text-sm font-medium px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
+                        className={`text-sm font-medium px-4 py-2 rounded-lg transition ${
+                          darkMode 
+                            ? 'bg-blue-900/50 text-blue-300 hover:bg-blue-900'
+                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        }`}
                       >
                         View Post
                       </button>
@@ -252,7 +282,11 @@ const AllPosts = () => {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className={`inline-flex items-center px-4 py-2 rounded-l-md border text-sm font-medium ${
+                    darkMode
+                      ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  } disabled:opacity-50`}
                 >
                   <FaArrowLeft className="mr-2" /> Previous
                 </button>
@@ -273,10 +307,14 @@ const AllPosts = () => {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+                      className={`inline-flex items-center px-4 py-2 border text-sm font-medium ${
                         currentPage === pageNum
-                          ? "bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
+                          ? darkMode
+                            ? 'bg-blue-900 border-blue-700 text-white'
+                            : 'bg-blue-50 border-blue-500 text-blue-600'
+                          : darkMode
+                            ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       {pageNum}
@@ -287,7 +325,11 @@ const AllPosts = () => {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className={`inline-flex items-center px-4 py-2 rounded-r-md border text-sm font-medium ${
+                    darkMode
+                      ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  } disabled:opacity-50`}
                 >
                   Next <FaArrowRight className="ml-2" />
                 </button>
@@ -296,14 +338,20 @@ const AllPosts = () => {
           )}
         </>
       ) : (
-        <div className="text-center py-16">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
-            <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className={`text-center py-16 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${
+            darkMode ? 'bg-blue-900/50' : 'bg-blue-100'
+          }`}>
+            <svg className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="mt-3 text-lg font-medium text-gray-900">No posts yet</h3>
-          <p className="mt-1 text-gray-500">Be the first to share something with the community!</p>
+          <h3 className={`mt-3 text-lg font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            No posts yet
+          </h3>
+          <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Be the first to share something with the community!
+          </p>
           <div className="mt-6">
             <button
               onClick={() => navigate('/create-post')}

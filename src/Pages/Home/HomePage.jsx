@@ -5,7 +5,7 @@ import TagSection from "./TagSection";
 
 const HomePage = () => {
   return (
-    <div className='pt-20'>
+    <div className='pt-2'>
       <Banner></Banner>
       <TagSection></TagSection>
       <Announcement></Announcement>

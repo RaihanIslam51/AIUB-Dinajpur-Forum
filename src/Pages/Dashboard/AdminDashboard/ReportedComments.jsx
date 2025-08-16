@@ -1,8 +1,9 @@
 import { formatDistanceToNow } from 'date-fns';
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaCommentAlt, FaTrash, FaUserAlt } from "react-icons/fa";
 import { MdDelete, MdWarning } from "react-icons/md";
 import Swal from "sweetalert2";
+import { AuthContext } from "../../../Authantication/Context/AuthContext";
 import useAxiosSecure from "../../../Hooks/AxiosSeure/useAxiosSecure";
 
 const ReportedComments = () => {
@@ -11,6 +12,7 @@ const ReportedComments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const { darkMode } = useContext(AuthContext);
 
   const fetchReports = async () => {
     try {
@@ -23,7 +25,9 @@ const ReportedComments = () => {
         title: "Error",
         text: "Failed to load reported comments",
         icon: "error",
-        confirmButtonColor: "#6366f1"
+        confirmButtonColor: "#6366f1",
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? 'white' : '#1f2937',
       });
     } finally {
       setLoading(false);
@@ -32,7 +36,7 @@ const ReportedComments = () => {
 
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [darkMode]);
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
@@ -45,6 +49,8 @@ const ReportedComments = () => {
       confirmButtonText: "Delete",
       cancelButtonText: "Cancel",
       reverseButtons: true,
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? 'white' : '#1f2937',
       backdrop: `
         rgba(79, 70, 229, 0.1)
         left top
@@ -67,6 +73,8 @@ const ReportedComments = () => {
             text: "Report has been removed",
             icon: "success",
             confirmButtonColor: "#6366f1",
+            background: darkMode ? '#1f2937' : '#ffffff',
+            color: darkMode ? 'white' : '#1f2937',
             timer: 1500,
             showConfirmButton: false
           });
@@ -77,7 +85,9 @@ const ReportedComments = () => {
           title: "Error",
           text: err.message || "Delete request failed",
           icon: "error",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       }
     }
@@ -93,7 +103,9 @@ const ReportedComments = () => {
       cancelButtonColor: "#6366f1",
       confirmButtonText: "Delete Comment",
       cancelButtonText: "Cancel",
-      reverseButtons: true
+      reverseButtons: true,
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? 'white' : '#1f2937',
     });
 
     if (confirm.isConfirmed) {
@@ -105,6 +117,8 @@ const ReportedComments = () => {
             text: "Comment removed from system",
             icon: "success",
             confirmButtonColor: "#6366f1",
+            background: darkMode ? '#1f2937' : '#ffffff',
+            color: darkMode ? 'white' : '#1f2937',
             timer: 1500,
             showConfirmButton: false
           });
@@ -115,7 +129,9 @@ const ReportedComments = () => {
           title: "Error",
           text: err.message || "Failed to delete comment",
           icon: "error",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       }
     }
@@ -127,10 +143,10 @@ const ReportedComments = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className={`flex justify-center items-center min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-600 mb-4"></div>
-          <p className="text-indigo-600 font-medium">Loading reported comments...</p>
+          <div className={`animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'} mb-4`}></div>
+          <p className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} font-medium`}>Loading reported comments...</p>
         </div>
       </div>
     );
@@ -138,14 +154,14 @@ const ReportedComments = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+      <div className={`flex justify-center items-center min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`p-8 rounded-xl shadow-lg text-center max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Reports</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Error Loading Reports</h2>
+          <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{error}</p>
           <button 
             onClick={fetchReports}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className={`px-6 py-2 text-white rounded-lg hover:shadow-lg transition ${darkMode ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
           >
             Try Again
           </button>
@@ -155,15 +171,15 @@ const ReportedComments = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className={`text-3xl font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               <MdWarning className="text-yellow-500" /> Reported Comments
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {reports.length} {reports.length === 1 ? 'report' : 'reports'} found
             </p>
           </div>
@@ -171,12 +187,12 @@ const ReportedComments = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={fetchReports}
-              className="p-2 bg-white rounded-lg shadow border border-gray-200 hover:bg-gray-50"
+              className={`p-2 rounded-lg shadow border ${darkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
               aria-label="Refresh"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                className="h-5 w-5 text-gray-600" 
+                className={`h-5 w-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
@@ -193,7 +209,7 @@ const ReportedComments = () => {
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 text-gray-900'}`}
             >
               <option value="all">All Reports</option>
               <option value="spam">Spam</option>
@@ -206,14 +222,14 @@ const ReportedComments = () => {
 
         {/* Reports List */}
         {filteredReports.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center">
-            <div className="text-gray-400 text-5xl mb-4">
+          <div className={`rounded-xl shadow-md p-8 text-center ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+            <div className={`text-5xl mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-300'}`}>
               <FaCommentAlt className="inline-block" />
             </div>
-            <h3 className="text-xl font-medium text-gray-700 mb-2">
+            <h3 className={`text-xl font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               No reported comments found
             </h3>
-            <p className="text-gray-500">
+            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {selectedFilter === 'all' 
                 ? "There are currently no reported comments to review" 
                 : `No reports match the "${selectedFilter}" filter`}
@@ -224,42 +240,45 @@ const ReportedComments = () => {
             {filteredReports.map((report) => (
               <div 
                 key={report._id} 
-                className="bg-white rounded-xl shadow-md overflow-hidden border-l-4 border-yellow-500 hover:shadow-lg transition"
+                className={`rounded-xl shadow-md overflow-hidden border-l-4 border-yellow-500 hover:shadow-lg transition ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
               >
                 <div className="p-6">
                   {/* Report Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full">
-                        <FaUserAlt className="text-blue-600" />
+                      <div className={`p-2 rounded-full ${darkMode ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                        <FaUserAlt className={`${darkMode ? 'text-blue-300' : 'text-blue-600'}`} />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">{report.email}</h3>
-                        <p className="text-sm text-gray-500">
+                        <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{report.email}</h3>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           Reported {formatDistanceToNow(new Date(report.reportedAt))} ago
                         </p>
                       </div>
                     </div>
                     
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      report.feedback.toLowerCase().includes('spam') ? 'bg-purple-100 text-purple-800' :
-                      report.feedback.toLowerCase().includes('abuse') ? 'bg-red-100 text-red-800' :
-                      report.feedback.toLowerCase().includes('hate') ? 'bg-orange-100 text-orange-800' :
-                      'bg-gray-100 text-gray-800'
+                      report.feedback.toLowerCase().includes('spam') 
+                        ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-800' :
+                      report.feedback.toLowerCase().includes('abuse') 
+                        ? darkMode ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-800' :
+                      report.feedback.toLowerCase().includes('hate') 
+                        ? darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-800' :
+                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'
                     }`}>
                       {report.feedback}
                     </span>
                   </div>
                   
                   {/* Comment Content */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <div className={`p-4 rounded-lg mb-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                     <div className="flex items-start gap-3">
-                      <div className="bg-indigo-100 p-2 rounded-full flex-shrink-0">
-                        <FaCommentAlt className="text-indigo-600" />
+                      <div className={`p-2 rounded-full flex-shrink-0 ${darkMode ? 'bg-indigo-900/50' : 'bg-indigo-100'}`}>
+                        <FaCommentAlt className={`${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
                       </div>
                       <div>
-                        <p className="text-gray-800">{report.comment}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{report.comment}</p>
+                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                           Posted {formatDistanceToNow(new Date(report.date))} ago
                         </p>
                       </div>
@@ -270,13 +289,13 @@ const ReportedComments = () => {
                   <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => handleDeleteComment(report.commentId)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                      className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-600 hover:bg-red-700'}`}
                     >
                       <FaTrash /> Delete Comment
                     </button>
                     <button
                       onClick={() => handleDelete(report._id)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
                     >
                       <MdDelete /> Dismiss Report
                     </button>

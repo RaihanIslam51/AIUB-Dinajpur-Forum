@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react';
 import {
   FaCalendarAlt,
   FaChartPie,
@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import Swal from "sweetalert2";
+import { AuthContext } from "../../../Authantication/Context/AuthContext";
 import useAuth from "../../../Hooks/AxiosSeure/useAuth";
 import useAxiosSecure from "../../../Hooks/AxiosSeure/useAxiosSecure";
 
@@ -22,6 +23,7 @@ const COLORS = ["#6366F1", "#10B981", "#F59E0B"];
 const AdminProfile = () => {
   const axiosSecure = useAxiosSecure();
   const { UserData } = useAuth();
+  const { darkMode } = useContext(AuthContext);
 
   const [adminData, setAdminData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,9 @@ const AdminProfile = () => {
           title: "Error",
           text: "Failed to load admin profile",
           icon: "error",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
         setAdminData(null);
       } finally {
@@ -86,7 +90,7 @@ const AdminProfile = () => {
     fetchAdminData();
     fetchCounts();
     fetchTags();
-  }, [UserData?.email, axiosSecure]);
+  }, [UserData?.email, axiosSecure, darkMode]);
 
   const handleAddTag = async (e) => {
     e.preventDefault();
@@ -95,7 +99,9 @@ const AdminProfile = () => {
         title: "Warning",
         text: "Please enter a tag name",
         icon: "warning",
-        confirmButtonColor: "#6366f1"
+        confirmButtonColor: "#6366f1",
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? 'white' : '#1f2937',
       });
       return;
     }
@@ -107,7 +113,9 @@ const AdminProfile = () => {
           title: "Success",
           text: "Tag added successfully",
           icon: "success",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
         setNewTag("");
         const res = await axiosSecure.get("/tags");
@@ -117,7 +125,9 @@ const AdminProfile = () => {
           title: "Error",
           text: "Failed to add tag",
           icon: "error",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       }
     } catch (error) {
@@ -126,7 +136,9 @@ const AdminProfile = () => {
         title: "Error",
         text: error.response?.data?.message || "Failed to add tag",
         icon: "error",
-        confirmButtonColor: "#6366f1"
+        confirmButtonColor: "#6366f1",
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? 'white' : '#1f2937',
       });
     }
   };
@@ -140,7 +152,9 @@ const AdminProfile = () => {
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#6366f1",
       confirmButtonText: "Delete",
-      cancelButtonText: "Cancel"
+      cancelButtonText: "Cancel",
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? 'white' : '#1f2937',
     });
 
     if (result.isConfirmed) {
@@ -151,14 +165,18 @@ const AdminProfile = () => {
           title: "Deleted!",
           text: "Tag has been removed",
           icon: "success",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       } catch (error) {
         Swal.fire({
           title: "Error",
           text: "Failed to delete tag",
           icon: "error",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       }
     }
@@ -175,7 +193,9 @@ const AdminProfile = () => {
           title: "Success!",
           text: "Name updated successfully",
           icon: "success",
-          confirmButtonColor: "#6366f1"
+          confirmButtonColor: "#6366f1",
+          background: darkMode ? '#1f2937' : '#ffffff',
+          color: darkMode ? 'white' : '#1f2937',
         });
       }
       setEditMode(false);
@@ -184,17 +204,19 @@ const AdminProfile = () => {
         title: "Error",
         text: "Failed to update name",
         icon: "error",
-        confirmButtonColor: "#6366f1"
+        confirmButtonColor: "#6366f1",
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? 'white' : '#1f2937',
       });
     }
   };
 
   if (loading || countLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className={`flex justify-center items-center min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600 mb-4"></div>
-          <p className="text-indigo-600 font-medium text-lg">Loading admin dashboard...</p>
+          <div className={`animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'} mb-4`}></div>
+          <p className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} font-medium text-lg`}>Loading admin dashboard...</p>
         </div>
       </div>
     );
@@ -202,14 +224,14 @@ const AdminProfile = () => {
 
   if (!adminData) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+      <div className={`flex justify-center items-center min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`p-8 rounded-xl shadow-lg text-center max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Admin Profile Not Found</h2>
-          <p className="text-gray-600 mb-6">We couldn't load your admin profile. Please try again later.</p>
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Admin Profile Not Found</h2>
+          <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>We couldn't load your admin profile. Please try again later.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className={`px-6 py-2 text-white rounded-lg hover:shadow-lg transition ${darkMode ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
           >
             Refresh Page
           </button>
@@ -233,26 +255,26 @@ const AdminProfile = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <div className="text-sm text-gray-500">
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Admin Dashboard</h1>
+          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             Last updated: {format(new Date(), 'MMMM d, yyyy h:mm a')}
           </div>
         </div>
 
         {/* Profile Section */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div className={`rounded-xl shadow-md overflow-hidden mb-8 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
           <div className="p-6 sm:p-8 md:flex items-start gap-8">
             <div className="relative mb-6 md:mb-0">
               <img
                 src={photo}
                 alt="Admin Avatar"
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-indigo-500 object-cover shadow-lg"
+                className={`w-32 h-32 md:w-40 md:h-40 rounded-full border-4 object-cover shadow-lg ${darkMode ? 'border-indigo-600' : 'border-indigo-500'}`}
               />
-              <div className="absolute -bottom-2 -right-2 bg-indigo-600 rounded-full p-3 shadow-md">
+              <div className={`absolute -bottom-2 -right-2 rounded-full p-3 shadow-md ${darkMode ? 'bg-indigo-700' : 'bg-indigo-600'}`}>
                 <FaUserShield className="text-white text-xl" />
               </div>
             </div>
@@ -265,18 +287,18 @@ const AdminProfile = () => {
                       type="text"
                       value={editedName}
                       onChange={(e) => setEditedName(e.target.value)}
-                      className="text-2xl font-bold text-gray-900 border-b-2 border-indigo-500 px-2 py-1 focus:outline-none"
+                      className={`text-2xl font-bold px-2 py-1 focus:outline-none border-b-2 ${darkMode ? 'text-white bg-transparent border-indigo-500' : 'text-gray-900 border-indigo-500'}`}
                     />
                     <button
                       onClick={handleUpdateName}
-                      className="text-green-600 hover:text-green-800"
+                      className="text-green-500 hover:text-green-400"
                       title="Save"
                     >
                       <FaEdit size={18} />
                     </button>
                     <button
                       onClick={() => setEditMode(false)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-500 hover:text-red-400"
                       title="Cancel"
                     >
                       ×
@@ -284,10 +306,10 @@ const AdminProfile = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <h2 className="text-2xl font-bold text-gray-900">{name}</h2>
+                    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{name}</h2>
                     <button
                       onClick={() => setEditMode(true)}
-                      className="text-indigo-600 hover:text-indigo-800"
+                      className={`${darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'}`}
                       title="Edit name"
                     >
                       <FaEdit size={16} />
@@ -297,18 +319,22 @@ const AdminProfile = () => {
               </div>
 
               <div className="space-y-3">
-                <p className="flex items-center text-gray-700">
-                  <FaEnvelope className="text-indigo-500 mr-2" size={16} />
+                <p className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <FaEnvelope className={`${darkMode ? 'text-indigo-400' : 'text-indigo-500'} mr-2`} size={16} />
                   <span className="font-medium">{email}</span>
                 </p>
 
                 <div className="flex items-center gap-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-800'
+                  }`}>
                     <FaUserShield className="mr-1" /> {role.charAt(0).toUpperCase() + role.slice(1)}
                   </span>
 
-                  <span className="flex items-center text-gray-700 text-sm">
-                    <FaCalendarAlt className="text-indigo-500 mr-2" size={14} />
+                  <span className={`flex items-center text-sm ${
+                    darkMode ? 'text-gray-400' : 'text-gray-700'
+                  }`}>
+                    <FaCalendarAlt className={`${darkMode ? 'text-indigo-400' : 'text-indigo-500'} mr-2`} size={14} />
                     Joined: {format(new Date(created_at), 'MMMM d, yyyy')}
                   </span>
                 </div>
@@ -320,15 +346,17 @@ const AdminProfile = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {pieData.map(({ name, value, icon }, index) => (
-            <div key={name} className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div key={name} className={`rounded-xl shadow-md overflow-hidden ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
               <div className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">{name}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{value.toLocaleString()}</p>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{name}</p>
+                    <p className={`text-3xl font-bold mt-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{value.toLocaleString()}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${COLORS[index].replace(/[^0-9]/g, '') < 500 ? 'bg-opacity-10' : 'bg-opacity-20'} bg-[${COLORS[index]}]`}>
-                    {icon}
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-opacity-20' : 'bg-opacity-10'}`} style={{
+                    backgroundColor: `${COLORS[index]}${darkMode ? '33' : '1a'}`
+                  }}>
+                    {React.cloneElement(icon, { className: `${darkMode ? 'text-white' : `text-[${COLORS[index]}]`}` })}
                   </div>
                 </div>
               </div>
@@ -338,10 +366,10 @@ const AdminProfile = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Pie Chart */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <FaChartPie className="text-indigo-500 mr-2" /> Content Distribution
+              <h3 className={`text-lg font-bold flex items-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <FaChartPie className={`${darkMode ? 'text-indigo-400' : 'text-indigo-500'} mr-2`} /> Content Distribution
               </h3>
             </div>
             <div className="h-64">
@@ -365,11 +393,12 @@ const AdminProfile = () => {
                   <Tooltip 
                     formatter={(value, name) => [`${value}`, name]}
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: darkMode ? '#1f2937' : '#ffffff',
+                      border: darkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
                       borderRadius: '0.5rem',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      padding: '0.5rem 1rem'
+                      padding: '0.5rem 1rem',
+                      color: darkMode ? 'white' : '#1f2937'
                     }}
                   />
                 </PieChart>
@@ -378,12 +407,12 @@ const AdminProfile = () => {
           </div>
 
           {/* Tags Management */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <FaTags className="text-indigo-500 mr-2" /> Manage Tags
+              <h3 className={`text-lg font-bold flex items-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <FaTags className={`${darkMode ? 'text-indigo-400' : 'text-indigo-500'} mr-2`} /> Manage Tags
               </h3>
-              <span className="text-sm text-gray-500">{tags.length} tags</span>
+              <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{tags.length} tags</span>
             </div>
 
             <form onSubmit={handleAddTag} className="mb-6">
@@ -393,11 +422,19 @@ const AdminProfile = () => {
                   placeholder="New tag name"
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className={`flex-1 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'border-gray-300 text-gray-900'
+                  }`}
                 />
                 <button
                   type="submit"
-                  className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  className={`flex items-center px-4 py-2 text-white rounded-lg hover:shadow-lg transition ${
+                    darkMode 
+                      ? 'bg-indigo-700 hover:bg-indigo-600'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
                 >
                   <FaPlus className="mr-1" /> Add
                 </button>
@@ -409,12 +446,14 @@ const AdminProfile = () => {
                 {tags.map((tag) => (
                   <div
                     key={tag._id}
-                    className="flex items-center bg-gray-100 rounded-full px-3 py-1"
+                    className={`flex items-center rounded-full px-3 py-1 ${
+                      darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
+                    }`}
                   >
-                    <span className="text-gray-800">#{tag.name}</span>
+                    <span>#{tag.name}</span>
                     <button
                       onClick={() => handleDeleteTag(tag._id)}
-                      className="ml-2 text-red-500 hover:text-red-700"
+                      className={`ml-2 ${darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-700'}`}
                     >
                       ×
                     </button>
@@ -422,7 +461,7 @@ const AdminProfile = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No tags yet. Add your first tag!</p>
+              <p className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No tags yet. Add your first tag!</p>
             )}
           </div>
         </div>

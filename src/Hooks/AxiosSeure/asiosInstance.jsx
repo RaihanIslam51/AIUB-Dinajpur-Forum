@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://server-two-ashen.vercel.app', // or your live server URL
+  baseURL: 'http://localhost:3000', // or your live server URL
  
 });
 

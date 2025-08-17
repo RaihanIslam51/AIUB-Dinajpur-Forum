@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -7,43 +6,39 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-} from 'firebase/auth';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { auth } from '../Firebase.init';
-import { AuthContext } from './AuthContext';
+} from "firebase/auth";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { auth } from "../Firebase.init";
+import { AuthContext } from "./AuthContext";
 
 const provider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
-  const BASE_URL = import.meta.env.VITE_URL;
   const [UserData, setUserData] = useState(null);
   const [Loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [accessToken, setAccessToken] = useState(null);
 
-  // Theme management
+  // Theme setup
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setDarkMode(savedTheme ? savedTheme === 'dark' : prefersDark);
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(savedTheme ? savedTheme === "dark" : prefersDark);
   }, []);
 
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  // Firebase Auth Functions
+  // Auth Functions
   const createUser = async (email, password, displayName) => {
     try {
       setLoading(true);
@@ -73,9 +68,9 @@ const AuthProvider = ({ children }) => {
   const SignOutUser = async () => {
     try {
       setLoading(true);
-      localStorage.removeItem('accessToken');
-      setAccessToken(null);
       await signOut(auth);
+      setUserData(null);
+      localStorage.removeItem("access-token");
     } catch (error) {
       toast.error(error.message);
       throw error;
@@ -109,69 +104,22 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Auth State Change Listener
+  // 🔑 Main Fix: Fetch Firebase ID Token
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUserData(currentUser);
-      
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        try {
-          const response = await axios.post(
-            `${BASE_URL}/jwt`, 
-            { email: currentUser.email },
-            { withCredentials: true }
-          );
-          
-          const token = response.data.token;
-          localStorage.setItem('accessToken', token);
-          setAccessToken(token);
-          
-          // Refresh token before it expires (optional)
-          const expiresIn = response.data.expiresIn || 3600;
-          setTimeout(() => {
-            axios.post(`${BASE_URL}/refresh-token`, {}, { withCredentials: true });
-          }, (expiresIn - 60) * 1000);
-          
-        } catch (error) {
-          console.error("Error fetching JWT:", error);
-          toast.error("Session initialization failed");
-        }
+        const token = await currentUser.getIdToken();
+        setUserData({ ...currentUser, accessToken: token });
+        localStorage.setItem("access-token", token); // optional
       } else {
-        localStorage.removeItem('accessToken');
-        setAccessToken(null);
+        setUserData(null);
+        localStorage.removeItem("access-token");
       }
-      
       setLoading(false);
     });
 
-    return () => unSubscribe();
-  }, [BASE_URL]);
-
-  // Add axios interceptor for token refresh
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      response => response,
-      async error => {
-        if (error.response?.status === 401 && !error.config._retry) {
-          error.config._retry = true;
-          try {
-            const response = await axios.post(`${BASE_URL}/refresh-token`, {}, { withCredentials: true });
-            localStorage.setItem('accessToken', response.data.token);
-            error.config.headers.Authorization = `Bearer ${response.data.token}`;
-            return axios(error.config);
-          } catch (refreshError) {
-            await SignOutUser();
-            return Promise.reject(refreshError);
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, [BASE_URL, SignOutUser]);
+    return () => unsubscribeAuth();
+  }, []);
 
   const userInfo = {
     GoogleLogin,
@@ -185,14 +133,9 @@ const AuthProvider = ({ children }) => {
     darkMode,
     setDarkMode,
     toggleDarkMode,
-    accessToken
   };
 
-  return (
-    <AuthContext.Provider value={userInfo}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={userInfo}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;
